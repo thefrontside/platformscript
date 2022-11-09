@@ -1,5 +1,5 @@
 import type { YAMLNode, YAMLScalar, YAMLMapping, YAMLSequence } from "./deps.ts";
-import { YSLiteral, YSValue } from "./types.ts";
+import { YSLiteral, YSValue, YSMap, YSFn } from "./types.ts";
 
 /**
  * Convert a JavaScript value into a YAMLScript value
@@ -109,10 +109,31 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
         if (key.type !== 'ref') {
           throw new Error(`invalid map key: ${key}, expected string, but was be string maybe revisit this.`);
         }
+        if (key.name.match(/\(/)) {
+          let match = key.name.match(/^(.+)\((.*)\)/);
+          if (match) {
+            let name = match[1].trim();
+            let param = match[2].trim();
+            let body = yaml2ys(mapping.value);
 
-        return Object.assign(value, {
-          [key.name]: yaml2ys(mapping.value),
-        })
+            return Object.assign(value, {
+              [name]: {
+                type: "fn",
+                value({ arg, env }) {
+                  let binding: YSMap = { type: "map", value: { [param]: arg } };
+                  return env.eval(body, binding)
+                }
+              } as YSFn
+            })
+          } else {
+            throw new SyntaxError(`invalid function declaration: ${key.name}`);
+          }
+        } else {
+          return Object.assign(value, {
+            [key.name]: yaml2ys(mapping.value),
+          })
+        }
+
       },{} as Record<string, YSValue>)
     }
   } else if (node.kind === 3) {

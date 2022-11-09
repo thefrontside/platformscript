@@ -60,5 +60,11 @@ describe("evaluate()", () => {
     it("evaluates an empty let binding as false", async() => {
       expect(await eval2js(`let: {x: 5}`)).toEqual(false);
     });
-  })
+  });
+
+  describe("functions", () => {
+    it("can define a function with function syntax and invoke it", async() => {
+      expect(await eval2js("{let: {id(x): x }, do: {id: 'hi'} }")).toEqual("hi");
+    });
+  });
 });
