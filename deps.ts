@@ -7,6 +7,6 @@ export type {
   YAMLSequence,
 } from "https://esm.sh/yaml-ast-parser@0.0.43";
 export type {
-  Future,
   Operation,
+  Task,
 } from "https://raw.githubusercontent.com/cowboyd/instructional-effection/main/mod.ts";

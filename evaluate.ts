@@ -1,6 +1,6 @@
 import type { YSEnv, YSLiteral, YSMap, YSString, YSValue } from "./types.ts";
 
-import { Future, Operation, parseYAML, run } from "./deps.ts";
+import { Operation, parseYAML, run, Task } from "./deps.ts";
 import { yaml2ys } from "./convert.ts";
 
 export interface EvalOptions {
@@ -11,7 +11,7 @@ export interface EvalOptions {
 export function evaluate(
   source: string,
   options?: EvalOptions,
-): Future<YSValue> {
+): Task<YSValue> {
   let { filename = "script", context = { type: "map", value: {} } } = options ??
     {};
   let literal = parse(source, filename);
