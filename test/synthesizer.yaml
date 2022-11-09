@@ -1,0 +1,67 @@
+import:
+  names: [layout, Box, Container, FilterInput, Link, IconLink, List, Chip]
+  from: "https://backstage.io/synthesizer/mod.yaml"
+
+layout:
+  name: "CatalogServices"
+  queries(params):
+    data:
+      query:
+        $file: "./CatalogServicesQuery.graphql"
+      variables:
+        q: params.q
+        pageSize: params.PageSize
+        cursor: params.cursor
+
+  mutations:
+    toggleFavorite:
+      @file: "./ToggleFavoriteMutation.graphql"
+
+  content(queries, mutations):
+    - Container:
+        content:
+          - Box: { xs: 6, content: "Systems" }
+          - Box:
+              xs: 6
+              content:
+                - FilterInput:
+                    submit(input, page):
+                      page.navigate: { q: input }
+    - Table:
+        isLoading: queries.data.loading
+        items: queries.data.nodes
+        columns(item):
+          - title: "Name"
+            content: item.name
+          - title: "System"
+            content:
+              - Link:
+                  to: item.system.url
+                  text: item.system.name
+          - title: "Owner"
+            content:
+              - Link:
+                  to: item.owner.url
+                  text: item.owner.name
+          - title: "Lifecycle"
+            content: item.lifecycle
+          - title: Description
+            content: item.description
+          - title: "Tags"
+            content:
+              - List:
+                  each(tag): Chip: tag # called for each item in the list
+          - title: "Actions"
+            content:
+              - IconLink:
+                  icon: "view"
+                  tooltip: "View"
+                  to: item.url
+              - IconLink:
+                  icon: "edit"
+                  tooltip: "Edit"
+                  to: item.editUrl
+              - IconLink:
+                  icon: "star"
+                  fill: {if: item.favorite, then: "yellow" }
+                  click(): { mutations.toggleFavorite: item.ref }

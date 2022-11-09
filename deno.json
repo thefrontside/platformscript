@@ -1,0 +1,24 @@
+{
+  "tasks": {
+    "test": "deno test",
+    "build:npm": "deno run -A tasks/build-npm.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["prefer-const"]
+    },
+    "files": {
+      "exclude": ["build"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["README.md", "build/"]
+    }
+  },
+  "test": {
+    "files": {
+      "exclude": ["build"]
+    }
+  }
+}
