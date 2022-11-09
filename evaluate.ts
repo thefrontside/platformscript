@@ -1,6 +1,6 @@
-import type { YSLiteral, YSEnv, YSMap, YSString, YSValue } from "./types.ts";
+import type { YSEnv, YSLiteral, YSMap, YSString, YSValue } from "./types.ts";
 
-import { parseYAML, run, Future, Operation } from "./deps.ts";
+import { Future, Operation, parseYAML, run } from "./deps.ts";
 import { yaml2ys } from "./convert.ts";
 
 export interface EvalOptions {
@@ -8,14 +8,17 @@ export interface EvalOptions {
   context?: YSMap;
 }
 
-export function evaluate(source: string, options?: EvalOptions): Future<YSValue> {
+export function evaluate(
+  source: string,
+  options?: EvalOptions,
+): Future<YSValue> {
   let { filename = "script", context = { type: "map", value: {} } } = options ??
     {};
   let literal = parse(source, filename);
 
   let env = createYSEnv();
 
-  return run(() => env.eval(literal, context))
+  return run(() => env.eval(literal, context));
 }
 
 export function createYSEnv(parent = global): YSEnv {
@@ -30,17 +33,17 @@ export function createYSEnv(parent = global): YSEnv {
         } else {
           return result;
         }
-      } else if (value.type === 'map') {
+      } else if (value.type === "map") {
         let map = value.value;
         let [name] = Object.keys(map);
         if (!name) {
-          return { type: "boolean", value: false }
+          return { type: "boolean", value: false };
         }
         let fn = scope.value[name];
         if (!fn) {
           throw new Error(`no function defined for '${name}'`);
         }
-        if (fn.type !== 'fn') {
+        if (fn.type !== "fn") {
           throw new Error(`${name} is not a function, it is a ${fn.type}`);
         }
 
@@ -49,26 +52,28 @@ export function createYSEnv(parent = global): YSEnv {
         return yield* fn.value({
           arg: map[name],
           env,
-          rest: exclude({ type: 'string', value: name }, value),
-        })
+          rest: exclude({ type: "string", value: name }, value),
+        });
       } else {
         return value;
       }
-    }
-  }
+    },
+  };
 }
 
 const letdo = {
   getBindings(value?: YSValue): YSMap {
     let bindings = value ?? { type: "map", value: {} };
-    if (bindings.type !== 'map') {
-      throw new TypeError(`'let' bindings must be a yaml mapping of keys to values, but it was passed a value of type '${bindings.type}'`)
+    if (bindings.type !== "map") {
+      throw new TypeError(
+        `'let' bindings must be a yaml mapping of keys to values, but it was passed a value of type '${bindings.type}'`,
+      );
     }
     return bindings;
   },
   *do(block: YSValue, bindings: YSMap, env: YSEnv) {
     let scope = yield* map(bindings, env.eval);
-    if (block.type === 'list') {
+    if (block.type === "list") {
       let result: YSValue = {
         type: "boolean",
         value: false,
@@ -80,8 +85,8 @@ const letdo = {
     } else {
       return yield* env.eval(block, scope);
     }
-  }
-}
+  },
+};
 
 export const global: YSMap = {
   type: "map",
@@ -90,23 +95,23 @@ export const global: YSMap = {
       type: "fn",
       *value({ arg, env, rest }) {
         let bindings = letdo.getBindings(arg);
-        let block = rest.value['do']
+        let block = rest.value["do"];
         if (block) {
-          return yield* letdo.do(block, bindings, env)
+          return yield* letdo.do(block, bindings, env);
         } else {
           return { type: "boolean", value: false };
         }
-      }
+      },
     },
     do: {
       type: "fn",
       *value({ arg, env, rest }) {
-        let bindings = letdo.getBindings(rest.value['let']);
+        let bindings = letdo.getBindings(rest.value["let"]);
         return yield* letdo.do(arg, bindings, env);
-      }
-    }
-  }
-}
+      },
+    },
+  },
+};
 
 export function parse(source: string, filename = "script"): YSLiteral<YSValue> {
   let yaml = parseYAML(source, { filename });
@@ -119,17 +124,20 @@ export function concat(parent: YSMap, child: YSMap): YSMap {
       [key]: {
         enumerable: true,
         configurable: true,
-        get: () => child.value[key]
-      } as PropertyDescriptor
-    })
+        get: () => child.value[key],
+      } as PropertyDescriptor,
+    });
   }, {});
   return {
     type: "map",
-    value: Object.create(parent.value, properties)
-  }
+    value: Object.create(parent.value, properties),
+  };
 }
 
-export function* map(fntor: YSMap, fn: (value: YSValue) => Operation<YSValue>): Operation<YSMap> {
+export function* map(
+  fntor: YSMap,
+  fn: (value: YSValue) => Operation<YSValue>,
+): Operation<YSMap> {
   let value: Record<string, YSValue> = {};
   for (let key of Object.keys(fntor.value)) {
     value[key] = yield* fn(fntor.value[key]);

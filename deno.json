@@ -5,7 +5,7 @@
   },
   "lint": {
     "rules": {
-      "exclude": ["prefer-const"]
+      "exclude": ["prefer-const", "require-yield"]
     },
     "files": {
       "exclude": ["build"]

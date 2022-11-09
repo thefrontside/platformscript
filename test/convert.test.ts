@@ -1,5 +1,5 @@
-import { describe, it, expect } from './suite.ts';
-import { parse, YSMap, YSLiteral } from "../mod.ts";
+import { describe, expect, it } from "./suite.ts";
+import { parse, YSLiteral, YSMap } from "../mod.ts";
 
 describe("function literal", () => {
   it("can be defined in a map", () => {
@@ -8,4 +8,4 @@ describe("function literal", () => {
     expect(fn).toBeDefined();
     expect(fn.type).toEqual("fn");
   });
-})
+});

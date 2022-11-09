@@ -1,5 +1,10 @@
-import type { YAMLNode, YAMLScalar, YAMLMapping, YAMLSequence } from "./deps.ts";
-import { YSLiteral, YSValue, YSMap, YSFn } from "./types.ts";
+import type {
+  YAMLMapping,
+  YAMLNode,
+  YAMLScalar,
+  YAMLSequence,
+} from "./deps.ts";
+import { YSFn, YSLiteral, YSMap, YSValue } from "./types.ts";
 
 /**
  * Convert a JavaScript value into a YAMLScript value
@@ -39,7 +44,7 @@ export function js2ys(value: unknown): YSValue {
     let fn = value as (x: unknown) => unknown;
     return {
       type: "fn",
-      *value({arg}) {
+      *value({ arg }) {
         return js2ys(fn(ys2js(arg)));
       },
     };
@@ -95,7 +100,10 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
       return {
         type: "ref",
         name: scalar.value,
-        path: scalar.value.split(".").map((s) => s.trim()) as [string, ...string[]],
+        path: scalar.value.split(".").map((s) => s.trim()) as [
+          string,
+          ...string[],
+        ],
         node,
       };
     }
@@ -106,8 +114,10 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
       node,
       value: mappings.reduce((value, mapping) => {
         let key = yaml2ys(mapping.key);
-        if (key.type !== 'ref') {
-          throw new Error(`invalid map key: ${key}, expected string, but was be string maybe revisit this.`);
+        if (key.type !== "ref") {
+          throw new Error(
+            `invalid map key: ${key}, expected string, but was be string maybe revisit this.`,
+          );
         }
         if (key.name.match(/\(/)) {
           let match = key.name.match(/^(.+)\((.*)\)/);
@@ -121,28 +131,27 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
                 type: "fn",
                 value({ arg, env }) {
                   let binding: YSMap = { type: "map", value: { [param]: arg } };
-                  return env.eval(body, binding)
-                }
-              } as YSFn
-            })
+                  return env.eval(body, binding);
+                },
+              } as YSFn,
+            });
           } else {
             throw new SyntaxError(`invalid function declaration: ${key.name}`);
           }
         } else {
           return Object.assign(value, {
             [key.name]: yaml2ys(mapping.value),
-          })
+          });
         }
-
-      },{} as Record<string, YSValue>)
-    }
+      }, {} as Record<string, YSValue>),
+    };
   } else if (node.kind === 3) {
     let list = node as YAMLSequence;
     return {
       type: "list",
       node,
       value: list.items.map(yaml2ys),
-    }
+    };
   } else {
     console.dir({ node }, { depth: 10 });
     throw new Error(`unknown YAMLNode of kind ${node.kind}`);

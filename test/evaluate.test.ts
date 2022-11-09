@@ -1,4 +1,4 @@
-import { describe, expect, it, eval2js } from "./suite.ts";
+import { describe, eval2js, expect, it } from "./suite.ts";
 
 describe("evaluate()", () => {
   it("evaluates number literals", async () => {
@@ -34,37 +34,40 @@ describe("evaluate()", () => {
       join: (args: Record<string, unknown>) => {
         let [[what, to]] = Object.entries(args);
         return `${what} ${to}`;
-      }
-    })).toEqual('hello world')
+      },
+    })).toEqual("hello world");
   });
 
   describe("do/let", () => {
-
     it("evaluates a simple reference", async () => {
       expect(await eval2js("do: 5")).toEqual(5);
     });
 
     it("evaluates a list of statements", async () => {
-      expect(await eval2js("do: [5, 10, x]", {
-        x: "fin"
-      })).toEqual("fin");
+      expect(
+        await eval2js("do: [5, 10, x]", {
+          x: "fin",
+        }),
+      ).toEqual("fin");
     });
 
-    it("allows binding expressions to appear in front", async() => {
+    it("allows binding expressions to appear in front", async () => {
       expect(await eval2js(`{let: {x: 5 }, do: x}`)).toEqual(5);
     });
 
-    it("allows binding expressions to appear afterwards", async() => {
+    it("allows binding expressions to appear afterwards", async () => {
       expect(await eval2js(`{do: x, let: { x: 5 }}`)).toEqual(5);
     });
-    it("evaluates an empty let binding as false", async() => {
+    it("evaluates an empty let binding as false", async () => {
       expect(await eval2js(`let: {x: 5}`)).toEqual(false);
     });
   });
 
   describe("functions", () => {
-    it("can define a function with function syntax and invoke it", async() => {
-      expect(await eval2js("{let: {id(x): x }, do: {id: 'hi'} }")).toEqual("hi");
+    it("can define a function with function syntax and invoke it", async () => {
+      expect(await eval2js("{let: {id(x): x }, do: {id: 'hi'} }")).toEqual(
+        "hi",
+      );
     });
   });
 });
