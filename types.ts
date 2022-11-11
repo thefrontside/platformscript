@@ -7,7 +7,7 @@ export interface YSEnv {
 export interface YSModule {
   url: string;
   symbols: YSMap;
-  literal: YSLiteral<YSValue>;
+  value: YSValue;
 }
 
 export type YSValue =

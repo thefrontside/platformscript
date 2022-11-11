@@ -1,5 +1,5 @@
 import { describe, it, expect } from './suite.ts';
-import { load, ys2js } from "../mod.ts";
+import { load, ys2js, evaluate } from "../mod.ts";
 import { run } from "../deps.ts";
 
 const base = `${import.meta.url}`;
@@ -11,6 +11,7 @@ const urls = {
   importsRelative: new URL("modules/imports-relative.yaml", base),
   importsAbsolute: new URL("modules/imports-absolute.yaml", base),
   noSuchSymbol: new URL("modules/no-such-symbol.yaml", base),
+  ts: new URL("modules/module.yaml.ts", base),
 };
 
 describe("a YAMLSCript module", () => {
@@ -49,15 +50,25 @@ describe("a YAMLSCript module", () => {
       expect(error.message).toMatch(/does not define/);
     }
   });
+  it("can be specified using a TypeScript module", async () => {
+    let mod = await run(() => load(urls.ts));
+    let result = await evaluate(`{to-string: 100 }`, { context: mod.symbols });
+    expect(result).toEqual({ type: "string", value: "100" });
+  });
+
+  // it("can be specified using a JavaScript module", async () => {
+
+  // });
+  // it("will be treated as the body of a 'do' expression if it is a bare list");
+  // it("can support a `do` expression at the module level");
+
   // it("can remap names of imported symbols");
   // it("can import from multiple different modules");
   // it("can load other modules from an absolute url");
   // it("can use imported symbols from another module");
   // it("can execute arbitrary code that uses globals or whatever");
   // it("can be a single value, but it will not export any symbols");
-  // it("will be treated as the body of a 'do' expression if it is a bare list");
   // it("supports loading both from the network and from local file system")
   // it("can handle circular module references");
-  // it("can be specified using JavaScript");
   // it("can be specified using WASM");
 })

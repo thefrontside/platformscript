@@ -1,4 +1,4 @@
-import type { YSModule, YSMap } from "./types.ts";
+import type { YSModule, YSMap, YSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
 import { expect } from './deps.ts';
@@ -6,8 +6,7 @@ import { parse, global, createYSEnv } from "./evaluate.ts";
 
 export function* load(location: string | URL, base?: string): Operation<YSModule> {
   let url = typeof location === 'string' ? new URL(location, base): location;
-  let content = yield* read(url);
-  let literal = parse(content);
+  let body = yield* fetchModule(url);
 
   let env = createYSEnv();
 
@@ -16,8 +15,8 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
     value: {},
   };
 
-  if (literal.type === 'map') {
-    let { import: imports, ...values } = literal.value
+  if (body.type === 'map') {
+    let { import: imports, ...values } = body.value
     if (imports) {
       if (imports.type === 'map') {
         let { names } = imports.value;
@@ -53,7 +52,7 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
       if (hasKey(key, global)) {
         throw new Error(`cannot override global operation '${key}'`);
       } else {
-        symbols.value[key] = yield* env.eval(literal.value[key], symbols);
+        symbols.value[key] = yield* env.eval(body.value[key], symbols);
       }
     }
   }
@@ -62,8 +61,18 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
   return {
     url: url.toString(),
     symbols,
-    literal,
+    value: body,
   };
+}
+
+function* fetchModule(url: URL): Operation<YSValue> {
+  if (url.pathname.endsWith(".ts") || url.pathname.endsWith(".js")) {
+    let definition = yield* expect(import(url.toString()));
+    return definition.default;
+  } else {
+    let content = yield* read(url);
+    return parse(content);
+  }
 }
 
 function read(url: URL): Operation<string> {
