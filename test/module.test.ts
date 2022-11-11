@@ -63,12 +63,12 @@ describe("a YAMLSCript module", () => {
     let mod = await loadmod("multi-dep.yaml");
     expect(ys2js(mod.value)).toEqual([5, "hello world"])
   });
+  it("supports loading both from the network and from local file system", () => {
+
+  })
   // it("can remap names of imported symbols");
   // it("can load other modules from an absolute url");
   // it("can use imported symbols from another module");
-  // it("can execute arbitrary code that uses globals or whatever");
-  // it("can be a single value, but it will not export any symbols");
-  // it("supports loading both from the network and from local file system")
   // it("can handle circular module references");
   // it("can be specified using WASM");
 });
