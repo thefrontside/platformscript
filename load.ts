@@ -1,12 +1,17 @@
-import type { YSModule, YSMap, YSValue } from "./types.ts";
+import type { YSMap, YSModule, YSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
-import { expect } from './deps.ts';
-import { parse, global, createYSEnv } from "./evaluate.ts";
+import { expect } from "./deps.ts";
+import { createYSEnv, global, letdo, parse } from "./evaluate.ts";
 
-export function* load(location: string | URL, base?: string): Operation<YSModule> {
-  let url = typeof location === 'string' ? new URL(location, base): location;
+export function* load(
+  location: string | URL,
+  base?: string,
+): Operation<YSModule> {
+  let url = typeof location === "string" ? new URL(location, base) : location;
   let body = yield* fetchModule(url);
+
+  let result: YSValue = body;
 
   let env = createYSEnv();
 
@@ -15,37 +20,47 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
     value: {},
   };
 
-  if (body.type === 'map') {
-    let { import: imports, ...values } = body.value
+  if (body.type === "map") {
+    let { import: imports, do: script, ...values } = body.value;
     if (imports) {
-      if (imports.type === 'map') {
+      if (imports.type === "map") {
         let { names } = imports.value;
         if (!names) {
           throw new Error(`imports must have a list of 'names:'`);
         }
-        if (names.type !== 'list') {
-          throw new Error(`imported names must be a list, but was '${names.type}`);
+        if (names.type !== "list") {
+          throw new Error(
+            `imported names must be a list, but was '${names.type}`,
+          );
         }
         let { from: source } = imports.value;
         if (!source) {
           throw new Error(`imports must have a 'from:' field'`);
         }
-        if (source.type !== 'string') {
-          throw new Error(`import location should be a string, but was '${source.type}`);
+        if (source.type !== "string") {
+          throw new Error(
+            `import location should be a string, but was '${source.type}`,
+          );
         }
         let dep = yield* load(source.value, url.toString());
         for (let name of names.value) {
-          if (name.type !== 'ref') {
-            throw new Error(`imported names must be references, but found ${name.type}`);
+          if (name.type !== "ref") {
+            throw new Error(
+              `imported names must be references, but found ${name.type}`,
+            );
           }
           let value = dep.symbols.value[name.name];
           if (!value) {
-            throw new Error(`${source.value} does not define a value named '${name.name}'`);
+            throw new Error(
+              `${source.value} does not define a value named '${name.name}'`,
+            );
           }
           symbols.value[name.name] = value;
         }
       } else {
-        throw new Error(`imports must be specified as a list or a mapping, but it was ${imports.type}`);
+        throw new Error(
+          `imports must be specified as a list or a mapping, but it was ${imports.type}`,
+        );
       }
     }
     for (let key of Object.keys(values)) {
@@ -55,13 +70,20 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
         symbols.value[key] = yield* env.eval(body.value[key], symbols);
       }
     }
+    if (script) {
+      result = yield* letdo.do(script, symbols, env);
+    } else {
+      result = { type: "boolean", value: false };
+    }
+  } else if (body.type === "list") {
+    result = yield* letdo.do(body, symbols, env);
   }
-
 
   return {
     url: url.toString(),
     symbols,
-    value: body,
+    body,
+    value: result,
   };
 }
 
@@ -76,10 +98,12 @@ function* fetchModule(url: URL): Operation<YSValue> {
 }
 
 function read(url: URL): Operation<string> {
-  if (url.protocol === 'file:') {
+  if (url.protocol === "file:") {
     return expect(Deno.readTextFile(url));
   } else {
-    throw new Error(`cannot load module from ${url}: unsupported protocol '${url.protocol}'`);
+    throw new Error(
+      `cannot load module from ${url}: unsupported protocol '${url.protocol}'`,
+    );
   }
 }
 

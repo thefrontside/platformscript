@@ -61,7 +61,7 @@ export function createYSEnv(parent = global): YSEnv {
   };
 }
 
-const letdo = {
+export const letdo = {
   getBindings(value?: YSValue): YSMap {
     let bindings = value ?? { type: "map", value: {} };
     if (bindings.type !== "map") {

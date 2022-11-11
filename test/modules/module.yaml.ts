@@ -1,4 +1,4 @@
-import type { YSString, YSValue, YSMap, YSFn } from "../../mod.ts";
+import type { YSFn, YSMap, YSString, YSValue } from "../../mod.ts";
 
 function ys2string(value: YSValue): YSString {
   switch (value.type) {
@@ -15,27 +15,29 @@ function ys2string(value: YSValue): YSString {
         value: String(value.value),
       };
     case "list":
-      let elements = value.value.map(v => ys2string(v).value);
+      let elements = value.value.map((v) => ys2string(v).value);
       return {
         type: "string",
-        value: `[${elements.join(',')}]`,
+        value: `[${elements.join(",")}]`,
       };
     case "map":
-      let pairs = Object.entries(value.value).map(([k,v]) => `${k}: ${ys2string(v).value}`)
+      let pairs = Object.entries(value.value).map(([k, v]) =>
+        `${k}: ${ys2string(v).value}`
+      );
       return {
         type: "string",
-        value: `{${pairs.join(',')}}`,
+        value: `{${pairs.join(",")}}`,
       };
     case "ref":
       return {
         type: "string",
-        value: `^${value.name}`
+        value: `^${value.name}`,
       };
     case "fn":
       return {
         type: "string",
-        value: `[fn]`
-      }
+        value: `[fn]`,
+      };
   }
 }
 
@@ -49,5 +51,5 @@ export default {
         return ys2string($arg);
       },
     } as YSFn,
-  }
-} as YSMap
+  },
+} as YSMap;
