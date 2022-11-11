@@ -20,42 +20,53 @@ export function* load(
     value: {},
   };
 
+  function* importSymbols(map: YSValue): Operation<void> {
+    if (map.type !== 'map') {
+      throw new Error(`imports be specified as a mapping of name: and from:, but was ${map.type}`);
+    }
+    let { names } = map.value;
+    if (!names) {
+      throw new Error(`imports must have a list of 'names:'`);
+    }
+    if (names.type !== "list") {
+      throw new Error(
+        `imported names must be a list, but was '${names.type}`,
+      );
+    }
+    let { from: source } = map.value;
+    if (!source) {
+      throw new Error(`imports must have a 'from:' field'`);
+    }
+    if (source.type !== "string") {
+      throw new Error(
+        `import location should be a string, but was '${source.type}`,
+      );
+    }
+    let dep = yield* load(source.value, url.toString());
+    for (let name of names.value) {
+      if (name.type !== "ref") {
+        throw new Error(
+          `imported names must be references, but found ${name.type}`,
+        );
+      }
+      let value = dep.symbols.value[name.name];
+      if (!value) {
+        throw new Error(
+          `${source.value} does not define a value named '${name.name}'`,
+        );
+      }
+      symbols.value[name.name] = value;
+    }
+  }
+
   if (body.type === "map") {
     let { import: imports, do: script, ...values } = body.value;
     if (imports) {
       if (imports.type === "map") {
-        let { names } = imports.value;
-        if (!names) {
-          throw new Error(`imports must have a list of 'names:'`);
-        }
-        if (names.type !== "list") {
-          throw new Error(
-            `imported names must be a list, but was '${names.type}`,
-          );
-        }
-        let { from: source } = imports.value;
-        if (!source) {
-          throw new Error(`imports must have a 'from:' field'`);
-        }
-        if (source.type !== "string") {
-          throw new Error(
-            `import location should be a string, but was '${source.type}`,
-          );
-        }
-        let dep = yield* load(source.value, url.toString());
-        for (let name of names.value) {
-          if (name.type !== "ref") {
-            throw new Error(
-              `imported names must be references, but found ${name.type}`,
-            );
-          }
-          let value = dep.symbols.value[name.name];
-          if (!value) {
-            throw new Error(
-              `${source.value} does not define a value named '${name.name}'`,
-            );
-          }
-          symbols.value[name.name] = value;
+        yield* importSymbols(imports)
+      } else if (imports.type === "list") {
+        for (let mapping of imports.value) {
+          yield* importSymbols(mapping);
         }
       } else {
         throw new Error(

@@ -59,8 +59,11 @@ describe("a YAMLSCript module", () => {
     expect(ys2js(mod.value)).toEqual("end-of-list");
   });
 
+  it("can import from multiple different modules", async () => {
+    let mod = await loadmod("multi-dep.yaml");
+    expect(ys2js(mod.value)).toEqual([5, "hello world"])
+  });
   // it("can remap names of imported symbols");
-  // it("can import from multiple different modules");
   // it("can load other modules from an absolute url");
   // it("can use imported symbols from another module");
   // it("can execute arbitrary code that uses globals or whatever");

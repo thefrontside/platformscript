@@ -25,6 +25,8 @@ export function createYSEnv(parent = global): YSEnv {
   return {
     *eval(value, context = { type: "map", value: {} }) {
       let scope = concat(parent, context);
+      let env = createYSEnv(scope);
+
       if (value.type === "ref") {
         let [key] = value.path;
         let result = scope.value[key];
@@ -47,13 +49,17 @@ export function createYSEnv(parent = global): YSEnv {
           throw new Error(`${name} is not a function, it is a ${fn.type}`);
         }
 
-        let env = createYSEnv(scope);
-
         return yield* fn.value({
           arg: map[name],
           env,
           rest: exclude({ type: "string", value: name }, value),
         });
+      } else if (value.type === 'list') {
+        let result = [] as YSValue[];
+        for (let item of value.value) {
+          result.push(yield* env.eval(item, scope));
+        }
+        return { type: "list", value: result };
       } else {
         return value;
       }

@@ -129,9 +129,12 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
             return Object.assign(value, {
               [name]: {
                 type: "fn",
-                value({ arg, env }) {
-                  let binding: YSMap = { type: "map", value: { [param]: arg } };
-                  return env.eval(body, binding);
+                *value({ arg, env }) {
+                  let binding: YSMap = {
+                    type: "map",
+                    value: { [param]: yield* env.eval(arg) }
+                  };
+                  return yield* env.eval(body, binding);
                 },
               } as YSFn,
             });

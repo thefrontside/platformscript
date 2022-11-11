@@ -1,0 +1,8 @@
+import:
+ - names: [five, id]
+   from: "./nodeps.yaml"
+ - names: [hello]
+   from: "./imports-relative.yaml"
+
+do:
+  - id: [five, hello]
