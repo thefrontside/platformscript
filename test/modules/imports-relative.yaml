@@ -1,0 +1,6 @@
+import:
+  names: [five, id]
+  from: "./nodeps.yaml"
+
+myfive: five
+hello: { id: "hello world" }

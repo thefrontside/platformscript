@@ -4,6 +4,12 @@ export interface YSEnv {
   eval(value: YSValue, scope?: YSMap): Operation<YSValue>;
 }
 
+export interface YSModule {
+  url: string;
+  symbols: YSMap;
+  literal: YSLiteral<YSValue>;
+}
+
 export type YSValue =
   | YSNumber
   | YSBoolean

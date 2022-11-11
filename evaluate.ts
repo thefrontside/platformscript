@@ -115,6 +115,9 @@ export const global: YSMap = {
 
 export function parse(source: string, filename = "script"): YSLiteral<YSValue> {
   let yaml = parseYAML(source, { filename });
+  if (!yaml) {
+    throw new SyntaxError(`empty string is not a YAML Document`);
+  }
   return yaml2ys(yaml);
 }
 
