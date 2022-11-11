@@ -1,0 +1,3 @@
+import:
+  names: [blork]
+  from: "./nodeps.yaml"

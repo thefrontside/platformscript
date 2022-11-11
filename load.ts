@@ -40,6 +40,9 @@ export function* load(location: string | URL, base?: string): Operation<YSModule
             throw new Error(`imported names must be references, but found ${name.type}`);
           }
           let value = dep.symbols.value[name.name];
+          if (!value) {
+            throw new Error(`${source.value} does not define a value named '${name.name}'`);
+          }
           symbols.value[name.name] = value;
         }
       } else {

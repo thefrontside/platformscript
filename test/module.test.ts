@@ -1,5 +1,5 @@
 import { describe, it, expect } from './suite.ts';
-import { load } from "../mod.ts";
+import { load, ys2js } from "../mod.ts";
 import { run } from "../deps.ts";
 
 const base = `${import.meta.url}`;
@@ -10,6 +10,7 @@ const urls = {
   nodeps: new URL("modules/nodeps.yaml", base),
   importsRelative: new URL("modules/imports-relative.yaml", base),
   importsAbsolute: new URL("modules/imports-absolute.yaml", base),
+  noSuchSymbol: new URL("modules/no-such-symbol.yaml", base),
 };
 
 describe("a YAMLSCript module", () => {
@@ -22,27 +23,32 @@ describe("a YAMLSCript module", () => {
     let mod = await run(() => load(urls.nodeps));
     let symbols = mod.symbols;
 
-    //@ts-expect-error an error here would also cause test failure
-    expect(symbols.value.five.value).toEqual(5);
+    expect(ys2js(symbols.value.five)).toEqual(5);
     expect(symbols.value.id.type).toEqual("fn");
   });
   it("can load other modules from a relative url", async () => {
     let mod = await run(() => load(urls.importsRelative));
     expect(mod.symbols.value.five.type).toEqual("number");
 
-    //@ts-expect-error an error here would also cause test failure
-    expect(mod.symbols.value.five.value).toEqual(5);
+    expect(ys2js(mod.symbols.value.five)).toEqual(5);
     expect(mod.symbols.value.hello.type).toEqual("string");
 
-    //@ts-expect-error an error here would also cause test failure
-    expect(mod.symbols.value.hello.value).toEqual("hello world");
+    expect(ys2js(mod.symbols.value.hello)).toEqual("hello world");
   });
 
   it("does not import symbols that are not expliticly mapped", async () => {
     let mod = await run(() => load(urls.importsRelative));
     expect(mod.symbols.value.str).not.toBeDefined();
   });
-  // it("throws an error if the symbol does not exist in the source module");
+
+  it("throws an error if the symbol does not exist in the source module", async ()=> {
+    try {
+      await run(() => load(urls.noSuchSymbol));
+      throw new Error('importing a symbol that does not exist should fail');
+    } catch (error) {
+      expect(error.message).toMatch(/does not define/);
+    }
+  });
   // it("can remap names of imported symbols");
   // it("can import from multiple different modules");
   // it("can load other modules from an absolute url");
