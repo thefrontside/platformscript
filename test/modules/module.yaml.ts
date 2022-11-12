@@ -14,13 +14,14 @@ function ys2string(value: YSValue): YSString {
         type: "string",
         value: String(value.value),
       };
-    case "list":
+    case "list": {
       let elements = value.value.map((v) => ys2string(v).value);
       return {
         type: "string",
         value: `[${elements.join(",")}]`,
       };
-    case "map":
+    }
+    case "map": {
       let pairs = Object.entries(value.value).map(([k, v]) =>
         `${k}: ${ys2string(v).value}`
       );
@@ -28,6 +29,7 @@ function ys2string(value: YSValue): YSString {
         type: "string",
         value: `{${pairs.join(",")}}`,
       };
+    }
     case "ref":
       return {
         type: "string",

@@ -132,7 +132,7 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
                 *value({ arg, env }) {
                   let binding: YSMap = {
                     type: "map",
-                    value: { [param]: yield* env.eval(arg) }
+                    value: { [param]: yield* env.eval(arg) },
                   };
                   return yield* env.eval(body, binding);
                 },

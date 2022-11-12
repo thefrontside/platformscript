@@ -1,11 +1,6 @@
 export { load as parseYAML } from "https://esm.sh/yaml-ast-parser@0.0.43";
-export {
-  action,
-  expect,
-  run,
-  suspend,
-  useAbortSignal,
-} from "https://raw.githubusercontent.com/cowboyd/instructional-effection/v0.0.0/mod.ts";
+export * from "https://raw.githubusercontent.com/cowboyd/instructional-effection/v0.0.0/mod.ts";
+
 export type {
   YAMLMapping,
   YAMLNode,

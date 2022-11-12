@@ -1,7 +1,7 @@
 import type { YSMap, YSModule, YSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
-import { expect } from "./deps.ts";
+import { expect, useAbortSignal } from "./deps.ts";
 import { createYSEnv, global, letdo, parse } from "./evaluate.ts";
 
 export function* load(
@@ -21,8 +21,10 @@ export function* load(
   };
 
   function* importSymbols(map: YSValue): Operation<void> {
-    if (map.type !== 'map') {
-      throw new Error(`imports be specified as a mapping of name: and from:, but was ${map.type}`);
+    if (map.type !== "map") {
+      throw new Error(
+        `imports be specified as a mapping of name: and from:, but was ${map.type}`,
+      );
     }
     let { names } = map.value;
     if (!names) {
@@ -63,7 +65,7 @@ export function* load(
     let { import: imports, do: script, ...values } = body.value;
     if (imports) {
       if (imports.type === "map") {
-        yield* importSymbols(imports)
+        yield* importSymbols(imports);
       } else if (imports.type === "list") {
         for (let mapping of imports.value) {
           yield* importSymbols(mapping);
@@ -108,9 +110,16 @@ function* fetchModule(url: URL): Operation<YSValue> {
   }
 }
 
-function read(url: URL): Operation<string> {
+function* read(url: URL): Operation<string> {
   if (url.protocol === "file:") {
-    return expect(Deno.readTextFile(url));
+    return yield* expect(Deno.readTextFile(url));
+  } else if (url.protocol.startsWith("http")) {
+    let signal = yield* useAbortSignal();
+    let response = yield* expect(fetch(url, { signal }));
+    if (!response.ok) {
+      throw new Error(`${url}: ${response.status} ${response.statusText}`);
+    }
+    return yield* expect(response.text());
   } else {
     throw new Error(
       `cannot load module from ${url}: unsupported protocol '${url.protocol}'`,

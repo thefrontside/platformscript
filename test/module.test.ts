@@ -1,7 +1,7 @@
 import type { YSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
-import { describe, expect, it } from "./suite.ts";
+import { describe, expect, it, useStaticFileServer } from "./suite.ts";
 import { evaluate, load, ys2js } from "../mod.ts";
 import { run } from "../deps.ts";
 
@@ -61,11 +61,15 @@ describe("a YAMLSCript module", () => {
 
   it("can import from multiple different modules", async () => {
     let mod = await loadmod("multi-dep.yaml");
-    expect(ys2js(mod.value)).toEqual([5, "hello world"])
+    expect(ys2js(mod.value)).toEqual([5, "hello world"]);
   });
-  it("supports loading both from the network and from local file system", () => {
-
-  })
+  it("supports loading both from the network and from local file system", async () => {
+    await run(function* () {
+      let { hostname, port } = yield* useStaticFileServer("test/modules");
+      let mod = yield* load(`http://${hostname}:${port}/multi-dep.yaml`);
+      expect(ys2js(mod.value)).toEqual([5, "hello world"]);
+    });
+  });
   // it("can remap names of imported symbols");
   // it("can load other modules from an absolute url");
   // it("can use imported symbols from another module");

@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "test": "deno test --allow-read",
+    "test": "deno test --allow-read --allow-net",
     "build:npm": "deno run -A tasks/build-npm.ts"
   },
   "lint": {

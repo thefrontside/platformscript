@@ -54,7 +54,7 @@ export function createYSEnv(parent = global): YSEnv {
           env,
           rest: exclude({ type: "string", value: name }, value),
         });
-      } else if (value.type === 'list') {
+      } else if (value.type === "list") {
         let result = [] as YSValue[];
         for (let item of value.value) {
           result.push(yield* env.eval(item, scope));
