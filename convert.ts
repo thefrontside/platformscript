@@ -7,7 +7,7 @@ import type {
 import { YSFn, YSLiteral, YSMap, YSValue } from "./types.ts";
 
 /**
- * Convert a JavaScript value into a YAMLScript value
+ * Convert a JavaScript value into a PlatformScript value
  */
 export function js2ys(value: unknown): YSValue {
   let type = typeof value;
@@ -23,7 +23,7 @@ export function js2ys(value: unknown): YSValue {
     } else {
       if (typeof value === "undefined") {
         throw new Error(
-          `'undefined' cannot be converted into a YAMLScript value`,
+          `'undefined' cannot be converted into a PlatformScript value`,
         );
       }
       let record = value as Record<string, unknown>;
@@ -50,13 +50,13 @@ export function js2ys(value: unknown): YSValue {
     };
   } else {
     throw new Error(
-      `cannot convert JavaScript value: '${value}' into YAMLScript`,
+      `cannot convert JavaScript value: '${value}' into PlatformScript`,
     );
   }
 }
 
 /**
- * Convert a YAMLScript value into a JavaScript value
+ * Convert a PlatformScript value into a JavaScript value
  */
 export function ys2js(value: YSValue): unknown {
   switch (value.type) {
@@ -69,7 +69,7 @@ export function ys2js(value: YSValue): unknown {
         });
       }, {});
     case "fn":
-      throw new Error("TODO: convert YAMLScript fn into callable JS fn");
+      throw new Error("TODO: convert PlatformScript fn into callable JS fn");
     case "ref":
       throw new Error("TODO: de-reference YS references when converting to JS");
     default:
@@ -78,7 +78,7 @@ export function ys2js(value: YSValue): unknown {
 }
 
 /**
- * Convert source YAML into a YAMLScript Literal
+ * Convert source YAML into a PlatformScript Literal
  */
 export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
   if (node.kind === 0) {

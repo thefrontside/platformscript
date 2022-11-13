@@ -5,7 +5,7 @@ import { describe, expect, it, useStaticFileServer } from "./suite.ts";
 import { evaluate, load, ys2js } from "../mod.ts";
 import { run } from "../deps.ts";
 
-describe("a YAMLSCript module", () => {
+describe("a PlatformScript module", () => {
   it("can be loaded from an absolute url", async () => {
     let mod = await loadmod("1.yaml");
     expect(mod.symbols).toBeDefined();
