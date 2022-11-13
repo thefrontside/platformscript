@@ -1,17 +1,17 @@
-import type { YSEnv, YSLiteral, YSMap, YSString, YSValue } from "./types.ts";
+import type { PSEnv, PSLiteral, PSMap, PSString, PSValue } from "./types.ts";
 
 import { Operation, parseYAML, run, Task } from "./deps.ts";
 import { yaml2ys } from "./convert.ts";
 
 export interface EvalOptions {
   filename?: string;
-  context?: YSMap;
+  context?: PSMap;
 }
 
 export function evaluate(
   source: string,
   options?: EvalOptions,
-): Task<YSValue> {
+): Task<PSValue> {
   let { filename = "script", context = { type: "map", value: {} } } = options ??
     {};
   let literal = parse(source, filename);
@@ -21,7 +21,7 @@ export function evaluate(
   return run(() => env.eval(literal, context));
 }
 
-export function createYSEnv(parent = global): YSEnv {
+export function createYSEnv(parent = global): PSEnv {
   return {
     *eval(value, context = { type: "map", value: {} }) {
       let scope = concat(parent, context);
@@ -55,7 +55,7 @@ export function createYSEnv(parent = global): YSEnv {
           rest: exclude({ type: "string", value: name }, value),
         });
       } else if (value.type === "list") {
-        let result = [] as YSValue[];
+        let result = [] as PSValue[];
         for (let item of value.value) {
           result.push(yield* env.eval(item, scope));
         }
@@ -68,7 +68,7 @@ export function createYSEnv(parent = global): YSEnv {
 }
 
 export const letdo = {
-  getBindings(value?: YSValue): YSMap {
+  getBindings(value?: PSValue): PSMap {
     let bindings = value ?? { type: "map", value: {} };
     if (bindings.type !== "map") {
       throw new TypeError(
@@ -77,10 +77,10 @@ export const letdo = {
     }
     return bindings;
   },
-  *do(block: YSValue, bindings: YSMap, env: YSEnv) {
+  *do(block: PSValue, bindings: PSMap, env: PSEnv) {
     let scope = yield* map(bindings, env.eval);
     if (block.type === "list") {
-      let result: YSValue = {
+      let result: PSValue = {
         type: "boolean",
         value: false,
       };
@@ -94,7 +94,7 @@ export const letdo = {
   },
 };
 
-export const global: YSMap = {
+export const global: PSMap = {
   type: "map",
   value: {
     let: {
@@ -119,7 +119,7 @@ export const global: YSMap = {
   },
 };
 
-export function parse(source: string, filename = "script"): YSLiteral<YSValue> {
+export function parse(source: string, filename = "script"): PSLiteral<PSValue> {
   let yaml = parseYAML(source, { filename });
   if (!yaml) {
     throw new SyntaxError(`empty string is not a YAML Document`);
@@ -127,7 +127,7 @@ export function parse(source: string, filename = "script"): YSLiteral<YSValue> {
   return yaml2ys(yaml);
 }
 
-export function concat(parent: YSMap, child: YSMap): YSMap {
+export function concat(parent: PSMap, child: PSMap): PSMap {
   let properties = Object.keys(child.value).reduce((props, key) => {
     return Object.assign(props, {
       [key]: {
@@ -144,10 +144,10 @@ export function concat(parent: YSMap, child: YSMap): YSMap {
 }
 
 export function* map(
-  fntor: YSMap,
-  fn: (value: YSValue) => Operation<YSValue>,
-): Operation<YSMap> {
-  let value: Record<string, YSValue> = {};
+  fntor: PSMap,
+  fn: (value: PSValue) => Operation<PSValue>,
+): Operation<PSMap> {
+  let value: Record<string, PSValue> = {};
   for (let key of Object.keys(fntor.value)) {
     value[key] = yield* fn(fntor.value[key]);
   }
@@ -155,8 +155,8 @@ export function* map(
   return { type: "map", value };
 }
 
-export function exclude(key: YSString, map: YSMap) {
-  let result: YSMap = {
+export function exclude(key: PSString, map: PSMap) {
+  let result: PSMap = {
     type: "map",
     value: {},
   };

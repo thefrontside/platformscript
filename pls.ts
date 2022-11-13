@@ -6,7 +6,7 @@ import { ys2js } from "./convert.ts";
 
 let [script] = Deno.args;
 if (!script) {
-  console.error('ys SCRIPT');
+  console.error(`pls SCRIPT`);
 } else {
   let url = isURL(script) ? script : `file://${resolve(script)}`;
   await run(function*() {

@@ -23,17 +23,17 @@ await build({
   },
   package: {
     // package.json properties
-    name: "@frontside/yamlscript",
+    name: "@frontside/PlatformScript",
     version,
     description: "Program with YAML",
     license: "ISC",
     repository: {
       author: "engineering@frontside.com",
       type: "git",
-      url: "git+https://github.com/frontside/yamlscript.git",
+      url: "git+https://github.com/frontside/PlatformScript.git",
     },
     bugs: {
-      url: "https://github.com/frontside/yamlscript/issues",
+      url: "https://github.com/frontside/PlatformScript/issues",
     },
     engines: {
       node: ">= 14",
