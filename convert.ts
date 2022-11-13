@@ -4,12 +4,12 @@ import type {
   YAMLScalar,
   YAMLSequence,
 } from "./deps.ts";
-import { YSFn, YSLiteral, YSMap, YSValue } from "./types.ts";
+import { PSFn, PSLiteral, PSMap, PSValue } from "./types.ts";
 
 /**
  * Convert a JavaScript value into a PlatformScript value
  */
-export function js2ys(value: unknown): YSValue {
+export function js2ys(value: unknown): PSValue {
   let type = typeof value;
   if (type === "number") {
     return { type, value: value as number };
@@ -37,7 +37,7 @@ export function js2ys(value: unknown): YSValue {
           } else {
             return map;
           }
-        }, {} as Record<string, YSValue>),
+        }, {} as Record<string, PSValue>),
       };
     }
   } else if (type === "function") {
@@ -58,7 +58,7 @@ export function js2ys(value: unknown): YSValue {
 /**
  * Convert a PlatformScript value into a JavaScript value
  */
-export function ys2js(value: YSValue): unknown {
+export function ys2js(value: PSValue): unknown {
   switch (value.type) {
     case "list":
       return value.value.map(ys2js);
@@ -80,7 +80,7 @@ export function ys2js(value: YSValue): unknown {
 /**
  * Convert source YAML into a PlatformScript Literal
  */
-export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
+export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
   if (node.kind === 0) {
     let scalar = node as YAMLScalar;
     if (scalar.doubleQuoted || scalar.singleQuoted) {
@@ -130,13 +130,13 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
               [name]: {
                 type: "fn",
                 *value({ arg, env }) {
-                  let binding: YSMap = {
+                  let binding: PSMap = {
                     type: "map",
                     value: { [param]: yield* env.eval(arg) },
                   };
                   return yield* env.eval(body, binding);
                 },
-              } as YSFn,
+              } as PSFn,
             });
           } else {
             throw new SyntaxError(`invalid function declaration: ${key.name}`);
@@ -146,7 +146,7 @@ export function yaml2ys(node: YAMLNode): YSLiteral<YSValue> {
             [key.name]: yaml2ys(mapping.value),
           });
         }
-      }, {} as Record<string, YSValue>),
+      }, {} as Record<string, PSValue>),
     };
   } else if (node.kind === 3) {
     let list = node as YAMLSequence;

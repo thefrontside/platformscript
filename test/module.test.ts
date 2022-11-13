@@ -1,4 +1,4 @@
-import type { YSModule } from "../types.ts";
+import type { PSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
 import { describe, expect, it, useStaticFileServer } from "./suite.ts";
@@ -77,6 +77,6 @@ describe("a PlatformScript module", () => {
   // it("can be specified using WASM");
 });
 
-function loadmod(url: string): Task<YSModule> {
+function loadmod(url: string): Task<PSModule> {
   return run(() => load(new URL(`modules/${url}`, import.meta.url)));
 }

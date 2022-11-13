@@ -1,6 +1,6 @@
-import type { YSFn, YSMap, YSString, YSValue } from "../../mod.ts";
+import type { PSFn, PSMap, PSString, PSValue } from "../../mod.ts";
 
-function ys2string(value: YSValue): YSString {
+function ys2string(value: PSValue): PSString {
   switch (value.type) {
     case "string":
       return value;
@@ -52,6 +52,6 @@ export default {
         let $arg = yield* env.eval(arg);
         return ys2string($arg);
       },
-    } as YSFn,
+    } as PSFn,
   },
-} as YSMap;
+} as PSMap;

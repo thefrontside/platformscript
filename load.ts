@@ -1,4 +1,4 @@
-import type { YSMap, YSModule, YSValue } from "./types.ts";
+import type { PSMap, PSModule, PSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
 import { expect, useAbortSignal } from "./deps.ts";
@@ -7,20 +7,20 @@ import { createYSEnv, global, letdo, parse } from "./evaluate.ts";
 export function* load(
   location: string | URL,
   base?: string,
-): Operation<YSModule> {
+): Operation<PSModule> {
   let url = typeof location === "string" ? new URL(location, base) : location;
   let body = yield* fetchModule(url);
 
-  let result: YSValue = body;
+  let result: PSValue = body;
 
   let env = createYSEnv();
 
-  let symbols: YSMap = {
+  let symbols: PSMap = {
     type: "map",
     value: {},
   };
 
-  function* importSymbols(map: YSValue): Operation<void> {
+  function* importSymbols(map: PSValue): Operation<void> {
     if (map.type !== "map") {
       throw new Error(
         `imports be specified as a mapping of name: and from:, but was ${map.type}`,
@@ -100,7 +100,7 @@ export function* load(
   };
 }
 
-function* fetchModule(url: URL): Operation<YSValue> {
+function* fetchModule(url: URL): Operation<PSValue> {
   if (url.pathname.endsWith(".ts") || url.pathname.endsWith(".js")) {
     let definition = yield* expect(import(url.toString()));
     return definition.default;
@@ -127,6 +127,6 @@ function* read(url: URL): Operation<string> {
   }
 }
 
-function hasKey(key: string, map: YSMap): boolean {
+function hasKey(key: string, map: PSMap): boolean {
   return key in map.value;
 }

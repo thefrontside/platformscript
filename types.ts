@@ -1,67 +1,67 @@
 import { Operation, YAMLNode } from "./deps.ts";
 
-export interface YSEnv {
-  eval(value: YSValue, scope?: YSMap): Operation<YSValue>;
+export interface PSEnv {
+  eval(value: PSValue, scope?: PSMap): Operation<PSValue>;
 }
 
-export interface YSModule {
+export interface PSModule {
   url: string;
-  symbols: YSMap;
-  body: YSValue;
-  value: YSValue;
+  symbols: PSMap;
+  body: PSValue;
+  value: PSValue;
 }
 
-export type YSValue =
-  | YSNumber
-  | YSBoolean
-  | YSString
-  | YSRef
-  | YSList
-  | YSMap
-  | YSFn;
+export type PSValue =
+  | PSNumber
+  | PSBoolean
+  | PSString
+  | PSRef
+  | PSList
+  | PSMap
+  | PSFn;
 
-export type YSLiteral<T extends YSValue> = T & {
+export type PSLiteral<T extends PSValue> = T & {
   node: YAMLNode;
 };
 
-export interface YSNumber {
+export interface PSNumber {
   type: "number";
   value: number;
 }
 
-export interface YSBoolean {
+export interface PSBoolean {
   type: "boolean";
   value: boolean;
 }
 
-export interface YSString {
+export interface PSString {
   type: "string";
   value: string;
 }
 
-export interface YSRef {
+export interface PSRef {
   type: "ref";
   name: string;
   path: [string, ...string[]];
 }
 
-export interface YSList {
+export interface PSList {
   type: "list";
-  value: YSValue[];
+  value: PSValue[];
 }
 
-export interface YSMap {
+export interface PSMap {
   type: "map";
-  value: Record<string, YSValue>;
+  value: Record<string, PSValue>;
 }
 
-export interface YSFn {
+export interface PSFn {
   type: "fn";
-  value(call: YSFnCall): Operation<YSValue>;
+  value(call: PSFnCall): Operation<PSValue>;
 }
 
-export interface YSFnCall {
-  arg: YSValue;
-  rest: YSMap;
-  env: YSEnv;
+export interface PSFnCall {
+  arg: PSValue;
+  rest: PSMap;
+  env: PSEnv;
 }
