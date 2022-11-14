@@ -35,7 +35,7 @@ export function createYSEnv(parent = global): PSEnv {
           throw new ReferenceError(`'${value.key}' not defined`);
         } else {
           return path.reduce((current, segment) => {
-            if (current.type === 'map') {
+            if (current.type === "map") {
               let next = current.value[segment];
               if (!next) {
                 throw new ReferenceError(`no such key '${segment}' in ${spec}`);
@@ -43,10 +43,11 @@ export function createYSEnv(parent = global): PSEnv {
                 return next;
               }
             } else {
-              throw new TypeError(`cannot de-reference key ${segment} from ${current.type}`);
+              throw new TypeError(
+                `cannot de-reference key ${segment} from ${current.type}`,
+              );
             }
           }, result);
-
         }
       } else if (value.type === "map") {
         let map = value.value;

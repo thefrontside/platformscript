@@ -1,4 +1,4 @@
-import type { YSFn, YSMap } from "../types.ts";
+import type { PSString, PSValue } from "../types.ts";
 
 import { log } from "../deps.ts";
 
@@ -9,12 +9,12 @@ export default {
       type: "fn",
       *value({ arg, env }) {
         yield* log(ys2string(yield* env.eval(arg)).value);
-      }
-    }
-  }
-}
+      },
+    },
+  },
+};
 
-function ys2string(value: YSValue): YSString {
+function ys2string(value: PSValue): PSString {
   switch (value.type) {
     case "string":
       return value;
@@ -38,7 +38,7 @@ function ys2string(value: YSValue): YSString {
     case "map": {
       let pairs = Object.entries(value.value).map(([k, v]) =>
         `${k}: ${ys2string(v).value}`
-                                                 );
+      );
       return {
         type: "string",
         value: `{${pairs.join(",")}}`,

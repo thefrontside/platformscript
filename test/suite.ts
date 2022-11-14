@@ -1,7 +1,7 @@
 export * from "https://deno.land/std@0.145.0/testing/bdd.ts";
 export { expect } from "https://deno.land/x/expect@v0.2.9/mod.ts";
 
-import { evaluate, js2ys, ys2js, PSMap } from "../mod.ts";
+import { evaluate, js2ys, PSMap, ys2js } from "../mod.ts";
 
 export async function eval2js(
   source: string,
