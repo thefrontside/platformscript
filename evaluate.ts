@@ -28,12 +28,25 @@ export function createYSEnv(parent = global): PSEnv {
       let env = createYSEnv(scope);
 
       if (value.type === "ref") {
-        let [key] = value.path;
+        let { key, path, spec } = value;
+
         let result = scope.value[key];
         if (!result) {
-          throw new ReferenceError(`'${value.name}' not defined`);
+          throw new ReferenceError(`'${value.key}' not defined`);
         } else {
-          return result;
+          return path.reduce((current, segment) => {
+            if (current.type === 'map') {
+              let next = current.value[segment];
+              if (!next) {
+                throw new ReferenceError(`no such key '${segment}' in ${spec}`);
+              } else {
+                return next;
+              }
+            } else {
+              throw new TypeError(`cannot de-reference key ${segment} from ${current.type}`);
+            }
+          }, result);
+
         }
       } else if (value.type === "map") {
         let map = value.value;

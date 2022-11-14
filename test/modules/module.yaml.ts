@@ -33,7 +33,7 @@ function ys2string(value: PSValue): PSString {
     case "ref":
       return {
         type: "string",
-        value: `^${value.name}`,
+        value: `^${value.key}`,
       };
     case "fn":
       return {

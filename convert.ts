@@ -97,13 +97,12 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
       }
       return { type: type as "number" | "boolean", value, node };
     } else {
+      let [key, ...path] = scalar.value.split(".").map((s) => s.trim());
       return {
         type: "ref",
-        name: scalar.value,
-        path: scalar.value.split(".").map((s) => s.trim()) as [
-          string,
-          ...string[],
-        ],
+        spec: scalar.value,
+        key,
+        path,
         node,
       };
     }
@@ -113,14 +112,14 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
       type: "map",
       node,
       value: mappings.reduce((value, mapping) => {
-        let key = yaml2ys(mapping.key);
-        if (key.type !== "ref") {
+        let sym = yaml2ys(mapping.key);
+        if (sym.type !== "ref") {
           throw new Error(
-            `invalid map key: ${key}, expected string, but was be string maybe revisit this.`,
+            `invalid map key: ${sym}, expected string, but was be string maybe revisit this.`,
           );
         }
-        if (key.name.match(/\(/)) {
-          let match = key.name.match(/^(.+)\((.*)\)/);
+        if (sym.key.match(/\(/)) {
+          let match = sym.key.match(/^(.+)\((.*)\)/);
           if (match) {
             let name = match[1].trim();
             let param = match[2].trim();
@@ -139,11 +138,11 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
               } as PSFn,
             });
           } else {
-            throw new SyntaxError(`invalid function declaration: ${key.name}`);
+            throw new SyntaxError(`invalid function declaration: ${sym.key}`);
           }
         } else {
           return Object.assign(value, {
-            [key.name]: yaml2ys(mapping.value),
+            [sym.key]: yaml2ys(mapping.value),
           });
         }
       }, {} as Record<string, PSValue>),

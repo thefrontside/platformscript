@@ -51,13 +51,13 @@ export function* load(
           `imported names must be references, but found ${name.type}`,
         );
       }
-      let value = dep.symbols.value[name.name];
+      let value = dep.symbols.value[name.key];
       if (!value) {
         throw new Error(
-          `${source.value} does not define a value named '${name.name}'`,
+          `${source.value} does not define a value named '${name.key}'`,
         );
       }
-      symbols.value[name.name] = value;
+      symbols.value[name.key] = value;
     }
   }
 
