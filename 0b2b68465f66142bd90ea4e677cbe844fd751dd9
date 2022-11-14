@@ -1,1 +1,9 @@
-hello universe
+lineage: platformscript
+impact: patch
+-----------------------
+support de-referencing mapping values using "." syntax.
+-----------------------
+lineage: platformscript-website
+impact: patch
+-----------------------
+add documentation for "." syntax
