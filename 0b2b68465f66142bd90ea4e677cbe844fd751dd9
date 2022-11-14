@@ -1,0 +1,5 @@
+----- version info -----
+platformscript:
+  impact: minor
+  message: allow importing symbols from multiple different modules
+------------------------
