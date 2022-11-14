@@ -41,8 +41,9 @@ export interface PSString {
 
 export interface PSRef {
   type: "ref";
-  name: string;
-  path: [string, ...string[]];
+  spec: string;
+  key: string;
+  path: string[];
 }
 
 export interface PSList {
