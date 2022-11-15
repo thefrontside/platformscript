@@ -142,15 +142,33 @@ export function parse(source: string, filename = "script"): PSLiteral<PSValue> {
 }
 
 export function concat(parent: PSMap, child: PSMap): PSMap {
-  let properties = Object.keys(child.value).reduce((props, key) => {
-    return Object.assign(props, {
-      [key]: {
-        enumerable: true,
-        configurable: true,
-        get: () => child.value[key],
-      } as PropertyDescriptor,
-    });
-  }, {});
+  let properties = {};
+  Object.assign(
+    properties,
+    Object.keys(parent.value).reduce((props, key) => {
+      return Object.assign(props, {
+        [key]: {
+          enumerable: true,
+          configurable: true,
+          get: () => parent.value[key],
+        } as PropertyDescriptor,
+      });
+    }, {}),
+  );
+
+  Object.assign(
+    properties,
+    Object.keys(child.value).reduce((props, key) => {
+      return Object.assign(props, {
+        [key]: {
+          enumerable: true,
+          configurable: true,
+          get: () => child.value[key],
+        } as PropertyDescriptor,
+      });
+    }, {}),
+  );
+
   return {
     type: "map",
     value: Object.create(parent.value, properties),

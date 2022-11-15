@@ -4,7 +4,7 @@ import type {
   YAMLScalar,
   YAMLSequence,
 } from "./deps.ts";
-import { PSFn, PSLiteral, PSMap, PSValue } from "./types.ts";
+import { PSFn, PSList, PSLiteral, PSMap, PSValue } from "./types.ts";
 
 /**
  * Convert a JavaScript value into a PlatformScript value
@@ -123,17 +123,45 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
           if (match) {
             let name = match[1].trim();
             let param = match[2].trim();
+            let destructured = param.split(",").map((s) => s.trim());
             let body = yaml2ys(mapping.value);
 
             return Object.assign(value, {
               [name]: {
                 type: "fn",
                 *value({ arg, env }) {
-                  let binding: PSMap = {
-                    type: "map",
-                    value: { [param]: yield* env.eval(arg) },
-                  };
-                  return yield* env.eval(body, binding);
+                  if (destructured.length > 1) {
+                    if (arg.type === "list") {
+                      if (destructured.length > arg.value.length) {
+                        throw new Error(
+                          `argument list must have at least ${destructured.length} elements`,
+                        );
+                      }
+                      let args = (yield* env.eval(arg)) as PSList;
+                      let binding: PSMap = {
+                        type: "map",
+                        value: destructured.reduce((map, name, i) => {
+                          let item = args.value[i];
+                          return Object.assign(map, {
+                            [name]: item,
+                          });
+                        }, {}),
+                      };
+                      return yield* env.eval(body, binding);
+                    } else {
+                      throw new Error(
+                        `cannot destructure function argument into (${
+                          destructured.join(", ")
+                        }). Must be a list, but was '${arg.type}'`,
+                      );
+                    }
+                  } else {
+                    let binding: PSMap = {
+                      type: "map",
+                      value: { [param]: yield* env.eval(arg) },
+                    };
+                    return yield* env.eval(body, binding);
+                  }
                 },
               } as PSFn,
             });
