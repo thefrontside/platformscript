@@ -1,0 +1,3 @@
+impact:
+  - level: minor
+    message: Support destructuring lists in function arguments to support variadic functions
