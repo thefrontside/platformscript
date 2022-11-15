@@ -1,3 +1,4 @@
 impact:
   - level: minor
     message: Support destructuring lists in function arguments to support variadic functions
+    pr: https://github.com/thefrontside/platformscript/pull/6
