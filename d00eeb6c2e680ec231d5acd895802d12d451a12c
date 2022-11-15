@@ -1,0 +1,5 @@
+impact:
+  - level: major
+    history: platform-script
+    message: rename `ys` -> `ps` in value conversion functions. E.g. `ys2js` -> `ps2js`
+pr: https://github.com/thefrontside/platformscript/pull/8
