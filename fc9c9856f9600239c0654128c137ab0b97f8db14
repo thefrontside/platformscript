@@ -2,4 +2,4 @@ impact:
   - level: major
     history: pls
     message: rename PlatformScript conversion functions from legacy `ys` to `ps`
-    pr: https://github.com/thefrontside/platformscript/pull/8
+pr: https://github.com/thefrontside/platformscript/pull/8
