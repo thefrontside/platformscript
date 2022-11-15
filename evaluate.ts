@@ -1,7 +1,7 @@
 import type { PSEnv, PSLiteral, PSMap, PSString, PSValue } from "./types.ts";
 
 import { Operation, parseYAML, run, Task } from "./deps.ts";
-import { yaml2ys } from "./convert.ts";
+import { yaml2ps } from "./convert.ts";
 
 export interface EvalOptions {
   filename?: string;
@@ -138,7 +138,7 @@ export function parse(source: string, filename = "script"): PSLiteral<PSValue> {
   if (!yaml) {
     throw new SyntaxError(`empty string is not a YAML Document`);
   }
-  return yaml2ys(yaml);
+  return yaml2ps(yaml);
 }
 
 export function concat(parent: PSMap, child: PSMap): PSMap {

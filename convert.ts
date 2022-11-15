@@ -9,7 +9,7 @@ import { PSFn, PSLiteral, PSMap, PSValue } from "./types.ts";
 /**
  * Convert a JavaScript value into a PlatformScript value
  */
-export function js2ys(value: unknown): PSValue {
+export function js2ps(value: unknown): PSValue {
   let type = typeof value;
   if (type === "number") {
     return { type, value: value as number };
@@ -19,7 +19,7 @@ export function js2ys(value: unknown): PSValue {
     return { type, value: value as string };
   } else if (type === "object") {
     if (Array.isArray(value)) {
-      return { type: "list", value: value.map(js2ys) };
+      return { type: "list", value: value.map(js2ps) };
     } else {
       if (typeof value === "undefined") {
         throw new Error(
@@ -32,7 +32,7 @@ export function js2ys(value: unknown): PSValue {
         value: Object.keys(record).reduce((map, key) => {
           if (typeof key === "string") {
             return Object.assign(map, {
-              [key]: js2ys(record[key]),
+              [key]: js2ps(record[key]),
             });
           } else {
             return map;
@@ -45,7 +45,7 @@ export function js2ys(value: unknown): PSValue {
     return {
       type: "fn",
       *value({ arg }) {
-        return js2ys(fn(ys2js(arg)));
+        return js2ps(fn(ps2js(arg)));
       },
     };
   } else {
@@ -58,10 +58,10 @@ export function js2ys(value: unknown): PSValue {
 /**
  * Convert a PlatformScript value into a JavaScript value
  */
-export function ys2js(value: PSValue): unknown {
+export function ps2js(value: PSValue): unknown {
   switch (value.type) {
     case "list":
-      return value.value.map(ys2js);
+      return value.value.map(ps2js);
     case "map":
       return Object.keys(value.value).reduce((obj, key) => {
         return Object.assign(obj, {
@@ -80,7 +80,7 @@ export function ys2js(value: PSValue): unknown {
 /**
  * Convert source YAML into a PlatformScript Literal
  */
-export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
+export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
   if (node.kind === 0) {
     let scalar = node as YAMLScalar;
     if (scalar.doubleQuoted || scalar.singleQuoted) {
@@ -112,7 +112,7 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
       type: "map",
       node,
       value: mappings.reduce((value, mapping) => {
-        let sym = yaml2ys(mapping.key);
+        let sym = yaml2ps(mapping.key);
         if (sym.type !== "ref") {
           throw new Error(
             `invalid map key: ${sym}, expected string, but was be string maybe revisit this.`,
@@ -123,7 +123,7 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
           if (match) {
             let name = match[1].trim();
             let param = match[2].trim();
-            let body = yaml2ys(mapping.value);
+            let body = yaml2ps(mapping.value);
 
             return Object.assign(value, {
               [name]: {
@@ -142,7 +142,7 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
           }
         } else {
           return Object.assign(value, {
-            [sym.key]: yaml2ys(mapping.value),
+            [sym.key]: yaml2ps(mapping.value),
           });
         }
       }, {} as Record<string, PSValue>),
@@ -152,7 +152,7 @@ export function yaml2ys(node: YAMLNode): PSLiteral<PSValue> {
     return {
       type: "list",
       node,
-      value: list.items.map(yaml2ys),
+      value: list.items.map(yaml2ps),
     };
   } else {
     console.dir({ node }, { depth: 10 });
