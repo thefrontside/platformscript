@@ -9,10 +9,10 @@ describe("a reference", () => {
       await eval2js("numbers.ints.five", { numbers: { ints: { five: 5 } } }),
     ).toEqual(5);
   });
-  it("fails to evaluate if the value does not exist", async() => {
+  it("fails to evaluate if the value does not exist", async () => {
     try {
       await eval2js("empty.nothing", { empty: {} });
-      throw new Error('expected dereference to fail, but it did not');
+      throw new Error("expected dereference to fail, but it did not");
     } catch (error) {
       expect(error.message).toMatch(/no such key/);
     }
