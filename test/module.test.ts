@@ -1,8 +1,14 @@
 import type { PSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
-import { describe, expect, it, useStaticFileServer } from "./suite.ts";
-import { evaluate, load, ps2js } from "../mod.ts";
+import {
+  describe,
+  evaluate,
+  expect,
+  it,
+  useStaticFileServer,
+} from "./suite.ts";
+import { load, ps2js } from "../mod.ts";
 import { run } from "../deps.ts";
 import { lookup, lookup$ } from "../psmap.ts";
 
@@ -43,7 +49,7 @@ describe("a PlatformScript module", () => {
 
   it("can be specified using a TypeScript module", async () => {
     let mod = await loadmod("module.yaml.ts");
-    let result = await evaluate(`{$to-string: 100 }`, { context: mod.symbols });
+    let result = await evaluate(`{$to-string: 100 }`, mod.symbols);
     expect(result).toEqual({ type: "string", value: "100", holes: [] });
   });
 
@@ -64,7 +70,9 @@ describe("a PlatformScript module", () => {
   it("supports loading both from the network and from local file system", async () => {
     await run(function* () {
       let { hostname, port } = yield* useStaticFileServer("test/modules");
-      let mod = yield* load(`http://${hostname}:${port}/multi-dep.yaml`);
+      let mod = yield* load({
+        location: `http://${hostname}:${port}/multi-dep.yaml`,
+      });
       expect(ps2js(mod.value)).toEqual([5, "hello world"]);
     });
   });
@@ -77,5 +85,9 @@ describe("a PlatformScript module", () => {
 });
 
 function loadmod(url: string): Task<PSModule> {
-  return run(() => load(new URL(`modules/${url}`, import.meta.url)));
+  return run(() =>
+    load({
+      location: new URL(`modules/${url}`, import.meta.url),
+    })
+  );
 }

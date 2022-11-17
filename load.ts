@@ -1,14 +1,18 @@
-import type { PSMap, PSModule, PSValue } from "./types.ts";
+import type { PSEnv, PSMap, PSModule, PSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
 import { expect, useAbortSignal } from "./deps.ts";
 import { exclude, lookup } from "./psmap.ts";
 import { createYSEnv, letdo, parse } from "./evaluate.ts";
 
-export function* load(
-  location: string | URL,
-  base?: string,
-): Operation<PSModule> {
+export interface LoadOptions {
+  location: string | URL;
+  base?: string;
+  env?: PSEnv;
+}
+
+export function* load(options: LoadOptions): Operation<PSModule> {
+  let { location, base } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
   let body = yield* fetchModule(url);
 
@@ -24,7 +28,7 @@ export function* load(
     value: new Map(),
   };
 
-  let env = createYSEnv();
+  let env = options.env ?? createYSEnv();
 
   function* importSymbols(map: PSValue): Operation<void> {
     if (map.type !== "map") {
@@ -50,7 +54,11 @@ export function* load(
         `import location should be a string, but was '${source.type}`,
       );
     }
-    let dep = yield* load(source.value.value, url.toString());
+    let dep = yield* load({
+      location: source.value.value,
+      base: url.toString(),
+      env,
+    });
 
     for (let name of names.value.value) {
       if (name.type !== "string") {
