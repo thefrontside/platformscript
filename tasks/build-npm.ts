@@ -18,27 +18,28 @@ await build({
   test: false,
   typeCheck: false,
   compilerOptions: {
+    lib: ["esnext", "dom"],
     target: "ES2020",
     sourceMap: true,
   },
   package: {
     // package.json properties
-    name: "@frontside/PlatformScript",
+    name: "platformscript",
     version,
-    description: "Program with YAML",
+    description: "Bring your YAML to life",
     license: "ISC",
     repository: {
       author: "engineering@frontside.com",
       type: "git",
-      url: "git+https://github.com/frontside/PlatformScript.git",
+      url: "git+https://github.com/frontside/platformscript.git",
     },
     bugs: {
-      url: "https://github.com/frontside/PlatformScript/issues",
+      url: "https://github.com/frontside/platformscript/issues",
     },
     engines: {
-      node: ">= 14",
+      node: ">= 16",
     },
   },
 });
 
-await Deno.copyFile("../README.md", `${outDir}/README.md`);
+await Deno.copyFile("README.md", `${outDir}/README.md`);
