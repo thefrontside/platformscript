@@ -62,7 +62,7 @@ export interface PSList {
 
 export interface PSMap {
   type: "map";
-  value: Map<PSMapKey, PSValue>;
+  value: Pick<Map<PSMapKey, PSValue>, "get" | "set" | "entries">;
 }
 
 export interface PSFn {

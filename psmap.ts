@@ -1,6 +1,13 @@
 import type { PSMap, PSMapKey, PSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
+export function createPSMap(): PSMap {
+  return {
+    type: "map",
+    value: new Map(),
+  };
+}
+
 export function concat(parent: PSMap, child: PSMap): PSMap {
   return {
     type: "map",

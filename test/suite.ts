@@ -1,15 +1,19 @@
 export * from "https://deno.land/std@0.145.0/testing/bdd.ts";
 export { expect } from "https://deno.land/x/expect@v0.2.9/mod.ts";
 
-import { evaluate, js2ps, ps2js, PSMap } from "../mod.ts";
+import { createPlatformScript, js2ps, ps2js, PSMap } from "../mod.ts";
+
+export function evaluate(source: string, scope?: PSMap) {
+  let ps = createPlatformScript();
+  let value = ps.parse(source, "script");
+  return ps.eval(value, scope);
+}
 
 export async function eval2js(
   source: string,
   cxt: Record<string, unknown> = {},
 ): Promise<unknown> {
-  let result = await evaluate(source, {
-    context: js2ps(cxt) as PSMap,
-  });
+  let result = await evaluate(source, js2ps(cxt) as PSMap);
   return ps2js(result);
 }
 

@@ -8,28 +8,9 @@ import type {
   PSValue,
 } from "./types.ts";
 
-import { parseYAML, run, Task } from "./deps.ts";
+import { parseYAML } from "./deps.ts";
 import { yaml2ps } from "./convert.ts";
 import { concat, lookup, map, Maybe } from "./psmap.ts";
-
-export interface EvalOptions {
-  filename?: string;
-  context?: PSMap;
-}
-
-export function evaluate(
-  source: string,
-  options?: EvalOptions,
-): Task<PSValue> {
-  let { filename = "script", context = { type: "map", value: new Map() } } =
-    options ??
-      {};
-  let literal = parse(source, filename);
-
-  let env = createYSEnv();
-
-  return run(() => env.eval(literal, context));
-}
 
 type Segment = {
   type: "const";

@@ -25,7 +25,7 @@ function ys2string(value: PSValue): PSString {
       };
     }
     case "map": {
-      let pairs = Object.entries(value.value).map(([k, v]) =>
+      let pairs = [...value.value.entries()].map(([k, v]) =>
         `${k}: ${ys2string(v).value}`
       );
       return {
