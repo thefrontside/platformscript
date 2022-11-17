@@ -4,6 +4,7 @@ import type { Task } from "../deps.ts";
 import { describe, expect, it, useStaticFileServer } from "./suite.ts";
 import { evaluate, load, ps2js } from "../mod.ts";
 import { run } from "../deps.ts";
+import { lookup, lookup$ } from "../psmap.ts";
 
 describe("a PlatformScript module", () => {
   it("can be loaded from an absolute url", async () => {
@@ -16,22 +17,19 @@ describe("a PlatformScript module", () => {
     let mod = await loadmod("nodeps.yaml");
     let symbols = mod.symbols;
 
-    expect(ps2js(symbols.value.five)).toEqual(5);
-    expect(symbols.value.id.type).toEqual("fn");
+    expect(lookup$("five", symbols).value).toEqual(5);
+    expect(lookup$("str", symbols).value).toEqual("world");
+    expect(lookup$("id", symbols).type).toEqual("fn");
   });
   it("can load other modules from a relative url", async () => {
     let mod = await loadmod("imports-relative.yaml");
-    expect(mod.symbols.value.five.type).toEqual("number");
-
-    expect(ps2js(mod.symbols.value.five)).toEqual(5);
-    expect(mod.symbols.value.hello.type).toEqual("string");
-
-    expect(ps2js(mod.symbols.value.hello)).toEqual("hello world");
+    expect(lookup$("myfive", mod.symbols).value).toEqual(5);
+    expect(lookup$("hello", mod.symbols).value).toEqual("hello world");
   });
 
   it("does not import symbols that are not expliticly mapped", async () => {
     let mod = await loadmod("imports-relative.yaml");
-    expect(mod.symbols.value.str).not.toBeDefined();
+    expect(lookup("str", mod.symbols).type).toEqual("nothing");
   });
 
   it("throws an error if the symbol does not exist in the source module", async () => {
@@ -45,8 +43,8 @@ describe("a PlatformScript module", () => {
 
   it("can be specified using a TypeScript module", async () => {
     let mod = await loadmod("module.yaml.ts");
-    let result = await evaluate(`{to-string: 100 }`, { context: mod.symbols });
-    expect(result).toEqual({ type: "string", value: "100" });
+    let result = await evaluate(`{$to-string: 100 }`, { context: mod.symbols });
+    expect(result).toEqual({ type: "string", value: "100", holes: [] });
   });
 
   it("can support a `do` expression at the module level", async () => {
@@ -70,6 +68,7 @@ describe("a PlatformScript module", () => {
       expect(ps2js(mod.value)).toEqual([5, "hello world"]);
     });
   });
+  // it("does not re-export symbols from other modules")
   // it("can remap names of imported symbols");
   // it("can load other modules from an absolute url");
   // it("can use imported symbols from another module");

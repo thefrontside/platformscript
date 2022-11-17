@@ -1,11 +1,10 @@
 import { describe, expect, it } from "./suite.ts";
-import { parse, PSLiteral, PSMap } from "../mod.ts";
+import { parse } from "../mod.ts";
+import type { PSFn } from "../types.ts";
 
 describe("function literal", () => {
-  it("can be defined in a map", () => {
-    let map = parse("id(x): x") as PSLiteral<PSMap>;
-    let fn = map.value.id;
-    expect(fn).toBeDefined();
+  it("is defined as a mapping", () => {
+    let fn = parse("$(x): $x") as PSFn;
     expect(fn.type).toEqual("fn");
   });
 });

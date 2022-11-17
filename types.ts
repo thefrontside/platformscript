@@ -20,6 +20,14 @@ export type PSValue =
   | PSMap
   | PSFn;
 
+export type PSMapKey =
+  | PSNumber
+  | PSBoolean
+  | PSString
+  | PSRef;
+
+export type PSMapEntry = [PSMapKey, PSValue];
+
 export type PSLiteral<T extends PSValue> = T & {
   node: YAMLNode;
 };
@@ -37,11 +45,12 @@ export interface PSBoolean {
 export interface PSString {
   type: "string";
   value: string;
+  holes: { ref: PSRef; range: [number, number] }[];
 }
 
 export interface PSRef {
   type: "ref";
-  spec: string;
+  value: string;
   key: string;
   path: string[];
 }
@@ -53,7 +62,7 @@ export interface PSList {
 
 export interface PSMap {
   type: "map";
-  value: Record<string, PSValue>;
+  value: Map<PSMapKey, PSValue>;
 }
 
 export interface PSFn {

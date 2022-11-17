@@ -4,7 +4,15 @@ import type {
   YAMLScalar,
   YAMLSequence,
 } from "./deps.ts";
-import { PSFn, PSLiteral, PSMap, PSValue } from "./types.ts";
+import {
+  PSLiteral,
+  PSMap,
+  PSMapEntry,
+  PSMapKey,
+  PSRef,
+  PSString,
+  PSValue,
+} from "./types.ts";
 
 /**
  * Convert a JavaScript value into a PlatformScript value
@@ -16,7 +24,7 @@ export function js2ps(value: unknown): PSValue {
   } else if (type === "boolean") {
     return { type, value: value as boolean };
   } else if (type === "string") {
-    return { type, value: value as string };
+    return { type, value: value as string, holes: [] };
   } else if (type === "object") {
     if (Array.isArray(value)) {
       return { type: "list", value: value.map(js2ps) };
@@ -29,15 +37,17 @@ export function js2ps(value: unknown): PSValue {
       let record = value as Record<string, unknown>;
       return {
         type: "map",
-        value: Object.keys(record).reduce((map, key) => {
-          if (typeof key === "string") {
-            return Object.assign(map, {
-              [key]: js2ps(record[key]),
-            });
-          } else {
-            return map;
-          }
-        }, {} as Record<string, PSValue>),
+        value: new Map(
+          Object.keys(record).flatMap((key) => {
+            if (typeof key === "string") {
+              let pskey: PSMapKey = { type: "string", value: key, holes: [] };
+              let entry: PSMapEntry = [pskey, js2ps(record[key])];
+              return [entry];
+            } else {
+              return [];
+            }
+          }),
+        ),
       };
     }
   } else if (type === "function") {
@@ -63,10 +73,8 @@ export function ps2js(value: PSValue): unknown {
     case "list":
       return value.value.map(ps2js);
     case "map":
-      return Object.keys(value.value).reduce((obj, key) => {
-        return Object.assign(obj, {
-          [key]: value.value[key],
-        });
+      return [...value.value.entries()].reduce((obj, [k, v]) => {
+        return Object.assign(obj, { [k.value.toString()]: v });
       }, {});
     case "fn":
       throw new Error("TODO: convert PlatformScript fn into callable JS fn");
@@ -77,17 +85,63 @@ export function ps2js(value: PSValue): unknown {
   }
 }
 
+export interface RefHole {
+  ref: PSRef;
+  range: [number, number];
+}
+
+export interface RefMatch {
+  // is the string nothing but a reference
+  total: boolean;
+
+  // the places that must be filled in to the matched string
+  holes: RefHole[];
+}
+
+export function matchRefs(value: string): RefMatch {
+  let valueIdx = 0;
+  let pathIdx = 1;
+  let keyIdx = 2;
+  let regex = /\$(([\w\d-]+)(\.[\w\d-]+)*)/gmd;
+  let i = value.matchAll(regex);
+  let holes: RefHole[] = [];
+  for (let next = i.next(); !next.done; next = i.next()) {
+    let match = next.value;
+    let ref = {
+      type: "ref",
+      value: match[valueIdx],
+      key: match[keyIdx],
+      path: match[pathIdx].split("."),
+    };
+
+    //@ts-expect-error RegExpMatchArray#indices not yet in the default TS lib
+    holes.push({ ref, range: match.indices[valueIdx] });
+  }
+  return {
+    total: holes.length === 1 && holes[0].ref.value === value,
+    holes,
+  };
+}
+
 /**
  * Convert source YAML into a PlatformScript Literal
  */
 export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
   if (node.kind === 0) {
     let scalar = node as YAMLScalar;
-    if (scalar.doubleQuoted || scalar.singleQuoted) {
+    if (scalar.singleQuoted) {
       return {
         type: "string",
         node,
         value: scalar.value,
+        holes: [],
+      };
+    } else if (scalar.doubleQuoted) {
+      return {
+        type: "string",
+        node,
+        value: scalar.value,
+        holes: matchRefs(scalar.value).holes,
       };
     } else if (typeof scalar.valueObject !== "undefined") {
       let value = scalar.valueObject;
@@ -97,56 +151,60 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
       }
       return { type: type as "number" | "boolean", value, node };
     } else {
-      let [key, ...path] = scalar.value.split(".").map((s) => s.trim());
-      return {
-        type: "ref",
-        spec: scalar.value,
-        key,
-        path,
-        node,
-      };
+      let match = matchRefs(scalar.value);
+      if (match.total) {
+        return {
+          ...match.holes[0].ref,
+          node,
+        };
+      } else {
+        return {
+          type: "string",
+          node,
+          value: scalar.value,
+          holes: match.holes,
+        };
+      }
     }
   } else if (node.kind === 2) {
-    let mappings = node.mappings as YAMLMapping[];
-    return {
-      type: "map",
-      node,
-      value: mappings.reduce((value, mapping) => {
-        let sym = yaml2ps(mapping.key);
-        if (sym.type !== "ref") {
-          throw new Error(
-            `invalid map key: ${sym}, expected string, but was be string maybe revisit this.`,
-          );
-        }
-        if (sym.key.match(/\(/)) {
-          let match = sym.key.match(/^(.+)\((.*)\)/);
-          if (match) {
-            let name = match[1].trim();
-            let param = match[2].trim();
-            let body = yaml2ps(mapping.value);
-
-            return Object.assign(value, {
-              [name]: {
-                type: "fn",
-                *value({ arg, env }) {
-                  let binding: PSMap = {
-                    type: "map",
-                    value: { [param]: yield* env.eval(arg) },
-                  };
-                  return yield* env.eval(body, binding);
-                },
-              } as PSFn,
-            });
-          } else {
-            throw new SyntaxError(`invalid function declaration: ${sym.key}`);
-          }
-        } else {
-          return Object.assign(value, {
-            [sym.key]: yaml2ps(mapping.value),
-          });
-        }
-      }, {} as Record<string, PSValue>),
-    };
+    let mappings: YAMLMapping[] = node.mappings ?? [];
+    let [first] = mappings;
+    if (!first) {
+      return { type: "map", value: new Map(), node };
+    } else {
+      let fnmatch = first.key.value.match(/^\$\s*\((.*)\)\s*$/);
+      if (fnmatch) {
+        let params = fnmatch[1];
+        let body = yaml2ps(first.value);
+        return {
+          type: "fn",
+          node,
+          *value({ arg, env }) {
+            let key: PSLiteral<PSString> = {
+              type: "string",
+              node: first.key,
+              value: params,
+              holes: [],
+            };
+            let binding: PSMap = {
+              type: "map",
+              value: new Map([[key, yield* env.eval(arg)]]),
+            };
+            return yield* env.eval(body, binding);
+          },
+        };
+      } else {
+        return {
+          type: "map",
+          node,
+          value: new Map(mappings.map((m) => {
+            let key = yaml2ps(m.key) as PSMapKey;
+            let value = yaml2ps(m.value);
+            return [key, value];
+          })),
+        };
+      }
+    }
   } else if (node.kind === 3) {
     let list = node as YAMLSequence;
     return {
