@@ -1,5 +1,5 @@
-import:
+$import:
   names: [id]
   from: "./nodeps.yaml"
-do:
-  id: "hello from do"
+$do:
+  $id: "hello from do"
