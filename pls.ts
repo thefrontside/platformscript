@@ -2,7 +2,7 @@ import type { Operation } from "./deps.ts";
 import { signal } from "https://deno.land/std@0.159.0/signal/mod.ts";
 import { first, LogContext, resolve, run, spawn, stream } from "./deps.ts";
 import { load } from "./load.ts";
-import { ys2js } from "./convert.ts";
+import { ps2js } from "./convert.ts";
 
 let [script] = Deno.args;
 if (!script) {
@@ -23,7 +23,7 @@ if (!script) {
 
     // if the module has a result, print it.
     if (mod.value) {
-      console.log(ys2js(mod.value));
+      console.log(ps2js(mod.value));
     }
   });
 }
