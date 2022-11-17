@@ -1,0 +1,5 @@
+impact:
+
+  level: major
+  history: platformscript
+  message: all references now require using `$` sigils. Wihout it a bare "ref" will be interpreted as just a string. Function calls mustalso use `$` syntax
