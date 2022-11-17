@@ -1,0 +1,5 @@
+impact:
+
+  level: major
+  history: platformscript
+  message: require `$` sigil for references and function calls.
