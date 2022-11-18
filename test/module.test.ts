@@ -1,13 +1,7 @@
 import type { PSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
-import {
-  describe,
-  evaluate,
-  expect,
-  it,
-  useStaticFileServer,
-} from "./suite.ts";
+import { describe, expect, it, useStaticFileServer } from "./suite.ts";
 import { load, ps2js } from "../mod.ts";
 import { run } from "../deps.ts";
 import { lookup, lookup$ } from "../psmap.ts";
@@ -45,12 +39,6 @@ describe("a PlatformScript module", () => {
     } catch (error) {
       expect(error.message).toMatch(/does not define/);
     }
-  });
-
-  it("can be specified using a TypeScript module", async () => {
-    let mod = await loadmod("module.yaml.ts");
-    let result = await evaluate(`{$to-string: 100 }`, mod.symbols);
-    expect(result).toEqual({ type: "string", value: "100", holes: [] });
   });
 
   it("can support a `do` expression at the module level", async () => {

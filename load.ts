@@ -14,7 +14,9 @@ export interface LoadOptions {
 export function* load(options: LoadOptions): Operation<PSModule> {
   let { location, base } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
-  let body = yield* fetchModule(url);
+
+  let content = yield* read(url);
+  let body = parse(content);
 
   let result: PSValue = body;
 
@@ -115,16 +117,6 @@ export function* load(options: LoadOptions): Operation<PSModule> {
     body,
     value: result,
   };
-}
-
-function* fetchModule(url: URL): Operation<PSValue> {
-  if (url.pathname.endsWith(".ts") || url.pathname.endsWith(".js")) {
-    let definition = yield* expect(import(url.toString()));
-    return definition.default;
-  } else {
-    let content = yield* read(url);
-    return parse(content);
-  }
 }
 
 function* read(url: URL): Operation<string> {
