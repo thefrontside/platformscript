@@ -31,10 +31,10 @@ await build({
     repository: {
       author: "engineering@frontside.com",
       type: "git",
-      url: "git+https://github.com/frontside/platformscript.git",
+      url: "git+https://github.com/thefrontside/platformscript.git",
     },
     bugs: {
-      url: "https://github.com/frontside/platformscript/issues",
+      url: "https://github.com/thefrontside/platformscript/issues",
     },
     engines: {
       node: ">= 16",
