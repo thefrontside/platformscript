@@ -3,8 +3,7 @@ import type {
   PSLiteral,
   PSMap,
   PSMapKey,
-  PSRef,
-  PSString,
+  PSTemplate,
   PSValue,
 } from "./types.ts";
 
@@ -16,36 +15,37 @@ type Segment = {
   type: "const";
   value: string;
 } | {
-  type: "ref";
-  ref: PSRef;
+  type: "expr";
+  ref: PSLiteral;
 };
 
-function* segments(str: PSString): Generator<Segment> {
-  if (str.holes.length) {
+function* segments(t: PSTemplate): Generator<Segment> {
+  let { expressions } = t;
+  if (expressions.length) {
     let idx = 0;
-    for (let hole of str.holes) {
-      let [start, end] = hole.range;
-      let substr = str.value.slice(idx, start);
+    for (let expr of expressions) {
+      let [start, end] = expr.range;
+      let substr = t.value.slice(idx, start);
       yield {
         type: "const",
         value: substr,
       };
       yield {
-        type: "ref",
-        ref: hole.ref,
+        type: "expr",
+        ref: expr.expression,
       };
       idx = end;
     }
-    if (idx < str.value.length) {
+    if (idx < t.value.length) {
       yield {
         type: "const",
-        value: str.value.slice(idx),
+        value: t.value.slice(idx),
       };
     }
   } else {
     yield {
       type: "const",
-      value: str.value,
+      value: t.value,
     };
   }
 }
@@ -57,7 +57,7 @@ export function createYSEnv(parent = global): PSEnv {
       let env = createYSEnv(scope);
 
       if (value.type === "ref") {
-        let [key, ...path] = value.path;
+        let { key, path } = value;
 
         let result = lookup(key, scope);
         if (result.type === "nothing") {
@@ -80,24 +80,17 @@ export function createYSEnv(parent = global): PSEnv {
             }
           }, result.value);
         }
-      } else if (value.type === "string") {
-        if (value.holes.length === 0) {
-          return value;
-        }
+      } else if (value.type === "template") {
         let str = "";
         for (let segment of segments(value)) {
           if (segment.type === "const") {
             str += segment.value;
           } else {
-            let $val = yield* env.eval(segment.ref);
-            str += $val.value;
+            let result = yield* env.eval(segment.ref);
+            str += result.value.toString();
           }
         }
-        return {
-          type: "string",
-          value: str,
-          holes: [],
-        };
+        return { type: "string", value: str };
       } else if (value.type === "map") {
         let entries = [...value.value.entries()];
         let [first, ...rest] = entries;

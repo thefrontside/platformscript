@@ -27,23 +27,22 @@ describe("evaluate()", () => {
     expect(await eval2js("$ref", { ref: "hi" })).toEqual("hi");
   });
 
-  it("interpolates references in strings", async () => {
+  it("interpolates expressions in strings", async () => {
     expect(
-      await eval2js("Hello $to, i $emotion u", { to: "World", emotion: "luv" }),
+      await eval2js("Hello %($to), i %($emotion) u", {
+        to: "World",
+        emotion: "luv",
+      }),
     ).toEqual("Hello World, i luv u");
   });
 
   it("fails if a reference is not defined", async () => {
     try {
-      await eval2js("hello $ref");
+      await eval2js("hello %($ref)");
       throw new Error("expected to throw, but did not");
     } catch (error) {
       expect(error.name).toEqual("ReferenceError");
     }
-  });
-
-  it("does not do interpolation in single quoted strings", async () => {
-    expect(await eval2js("'Hello $to'")).toEqual("Hello $to");
   });
 
   it.ignore("can evaluate a function with map arguments", () => {
