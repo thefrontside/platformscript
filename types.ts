@@ -1,3 +1,4 @@
+//deno-lint-ignore-file no-explicit-any
 import { Operation, YAMLNode } from "./deps.ts";
 
 export interface PSEnv {
@@ -19,7 +20,8 @@ export type PSValue =
   | PSRef
   | PSList
   | PSMap
-  | PSFn;
+  | PSFn
+  | PSExternal;
 
 export type PSMapKey =
   | PSNumber
@@ -70,6 +72,12 @@ export interface PSList {
 export interface PSMap {
   type: "map";
   value: Pick<Map<PSMapKey, PSValue>, "get" | "set" | "entries">;
+}
+
+export interface PSExternal {
+  type: "external";
+  value: any;
+  view?(path: string[], value: any): PSValue | void;
 }
 
 export interface PSFn {

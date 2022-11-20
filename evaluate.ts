@@ -63,22 +63,45 @@ export function createYSEnv(parent = global): PSEnv {
         if (result.type === "nothing") {
           throw new ReferenceError(`'${value.key}' not defined`);
         } else {
-          return path.reduce((current, segment) => {
-            if (current.type === "map") {
-              let next = lookup(segment, current);
-              if (next.type === "nothing") {
+          if (path.length > 0) {
+            if (result.value.type === "external" && result.value.view) {
+              let deref = result.value.view(path, result.value.value);
+              if (!deref) {
                 throw new ReferenceError(
-                  `no such key '${segment}' in ${value.value}`,
+                  `'${path.join(".")}' not found at ${key}`,
                 );
-              } else {
-                return next.value;
               }
+              if (!isPSValue(deref)) {
+                throw new TypeError(
+                  `external reference '${value.value}' did not resolve to a platformscript value`,
+                );
+              }
+              return deref;
+            } else if (result.value.type === "map") {
+              return path.reduce((current, segment) => {
+                if (current.type === "map") {
+                  let next = lookup(segment, current);
+                  if (next.type === "nothing") {
+                    throw new ReferenceError(
+                      `no such key '${segment}' in ${value.value}`,
+                    );
+                  } else {
+                    return next.value;
+                  }
+                } else {
+                  throw new TypeError(
+                    `cannot de-reference key ${segment} from '${current.type}'`,
+                  );
+                }
+              }, result.value as PSValue);
             } else {
               throw new TypeError(
-                `cannot de-reference key ${segment} from ${current.type}`,
+                `${result.value.type} '$${key}' does not support path-like references`,
               );
             }
-          }, result.value);
+          } else {
+            return result.value;
+          }
         }
       } else if (value.type === "template") {
         let str = "";
@@ -87,7 +110,7 @@ export function createYSEnv(parent = global): PSEnv {
             str += segment.value;
           } else {
             let result = yield* env.eval(segment.ref);
-            str += result.value.toString();
+            str += String(result.value);
           }
         }
         return { type: "string", value: str };
@@ -225,5 +248,24 @@ export function strip(literal: PSValue): PSValue {
     };
   } else {
     return value;
+  }
+}
+
+// this is kinda cheesy. We should beef up this check.
+function isPSValue(value: unknown): value is PSValue {
+  if (value) {
+    let check = value as PSValue;
+    return [
+      "number",
+      "boolean",
+      "string",
+      "ref",
+      "list",
+      "map",
+      "fn",
+      "external",
+    ].includes(check.type);
+  } else {
+    return false;
   }
 }
