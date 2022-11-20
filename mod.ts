@@ -3,3 +3,4 @@ export * from "./convert.ts";
 export * from "./evaluate.ts";
 export * from "./load.ts";
 export * from "./platformscript.ts";
+export * from "./data.ts";
