@@ -3,7 +3,7 @@ import { Operation, YAMLNode } from "./deps.ts";
 
 export interface PSEnv {
   eval(value: PSValue, scope?: PSMap): Operation<PSValue>;
-  call(fn: PSFn, funcall: PSFnCall): Operation<PSValue>;
+  call(fn: PSFn, arg: PSValue, options?: PSMap): Operation<PSValue>;
 }
 
 export interface PSModule {

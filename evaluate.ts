@@ -10,6 +10,7 @@ import type {
 import { parseYAML } from "./deps.ts";
 import { yaml2ps } from "./convert.ts";
 import { concat, lookup, map, Maybe } from "./psmap.ts";
+import * as data from "./data.ts";
 
 type Segment = {
   type: "const";
@@ -51,7 +52,7 @@ function* segments(t: PSTemplate): Generator<Segment> {
 }
 
 export function createYSEnv(parent = global): PSEnv {
-  return {
+  let env: PSEnv = {
     *eval(value, context = { type: "map", value: new Map() }) {
       let scope = concat(parent, context);
       let env = createYSEnv(scope);
@@ -151,10 +152,15 @@ export function createYSEnv(parent = global): PSEnv {
         return value;
       }
     },
-    *call(fn, funcall) {
-      return yield* fn.value(funcall);
+    call(fn, arg, options) {
+      return fn.value({
+        arg,
+        env,
+        rest: options ?? data.map({}),
+      });
     },
   };
+  return env;
 }
 
 export const letdo = {
