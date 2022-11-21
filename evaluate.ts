@@ -151,6 +151,9 @@ export function createYSEnv(parent = global): PSEnv {
         return value;
       }
     },
+    *call(fn, funcall) {
+      return yield* fn.value(funcall);
+    },
   };
 }
 
