@@ -135,9 +135,13 @@ export function createYSEnv(parent = global): PSEnv {
               rest: { type: "map", value: new Map(rest) },
             });
           } else {
+            let $entries = [] as [PSMapKey, PSValue][];
+            for (let [k, v] of entries) {
+              $entries.push([k, yield* env.eval(v)]);
+            }
             return {
               type: "map",
-              value: new Map(entries),
+              value: new Map($entries),
             };
           }
         }
