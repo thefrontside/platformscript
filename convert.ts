@@ -76,7 +76,7 @@ export function ps2js(value: PSValue): unknown {
       return value.value.map(ps2js);
     case "map":
       return [...value.value.entries()].reduce((obj, [k, v]) => {
-        return Object.assign(obj, { [k.value.toString()]: v });
+        return Object.assign(obj, { [k.value.toString()]: ps2js(v) });
       }, {});
     case "fn":
       throw new Error("TODO: convert PlatformScript fn into callable JS fn");

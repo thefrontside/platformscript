@@ -45,13 +45,15 @@ describe("evaluate()", () => {
     }
   });
 
-  it.ignore("can evaluate a function with map arguments", () => {
-    expect(eval2js("join: { hello: 'world'}", {
-      join: (args: Record<string, unknown>) => {
-        let [[what, to]] = Object.entries(args);
-        return `${what} ${to}`;
-      },
-    })).toEqual("hello world");
+  it("recursively evaluates a map key", async () => {
+    expect(
+      await eval2js(`
+$let:
+  x: "World"
+$do:
+  message: Hello %($x)
+`),
+    ).toEqual({ message: "Hello World" });
   });
 
   describe("do/let", () => {
