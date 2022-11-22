@@ -1,33 +1,50 @@
-import type { PSFn, PSFnCall, PSMap, PSModule, PSValue } from "./types.ts";
-import type { Task } from "./deps.ts";
-import { createYSEnv, global, parse } from "./evaluate.ts";
-import { concat, createPSMap } from "./psmap.ts";
+import type { PSEnv, PSFn, PSMap, PSModule, PSValue } from "./types.ts";
+import type { Operation, Task } from "./deps.ts";
+import { createYSEnv, global } from "./evaluate.ts";
+import { concat } from "./psmap.ts";
 import { load } from "./load.ts";
-import { run } from "./deps.ts";
+import { map } from "./data.ts";
+import { run as $run } from "./deps.ts";
 
 export interface PlatformScript {
-  call(fn: PSFn, funcall: PSFnCall): Task<PSValue>;
+  run<T>(block: (env: PSEnv) => Operation<T>): Task<T>;
+  call(fn: PSFn, arg: PSValue, options?: PSMap): Task<PSValue>;
   eval(value: PSValue, bindings?: PSMap): Task<PSValue>;
   load(url: string | URL, base?: string): Task<PSModule>;
-  parse(source: string, filename?: string): PSValue;
 }
 
-export function createPlatformScript(extensions?: PSMap): PlatformScript {
-  let ext = extensions ?? createPSMap();
-  let env = createYSEnv(concat(global, ext));
+export function createPlatformScript(
+  globals?: (ps: PlatformScript) => PSMap,
+): PlatformScript {
+  let env = lazy(() => {
+    let ext = globals ? globals(platformscript) : map({});
+    return createYSEnv(concat(global, ext));
+  });
 
-  return {
-    call(fn, funcall) {
-      return run(() => env.call(fn, funcall));
+  function run<T>(block: (env: PSEnv) => Operation<T>): Task<T> {
+    return $run(() => block(env()));
+  }
+
+  let platformscript: PlatformScript = {
+    run,
+    call(fn, arg, options) {
+      return run((env) => env.call(fn, arg, options));
     },
     eval(value, bindings) {
-      return run(() => env.eval(value, bindings));
+      return run((env) => env.eval(value, bindings));
     },
     load(location, base) {
-      return run(() => load({ location, base, env }));
-    },
-    parse(source, filename) {
-      return parse(source, filename);
+      return run((env) => load({ location, base, env }));
     },
   };
+  return platformscript;
+}
+
+function lazy<T>(create: () => T): () => T {
+  let thunk = () => {
+    let value = create();
+    thunk = () => value;
+    return value;
+  };
+  return () => thunk();
 }

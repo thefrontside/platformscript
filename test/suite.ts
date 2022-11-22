@@ -2,11 +2,11 @@ export * from "https://deno.land/std@0.145.0/testing/bdd.ts";
 export { expect } from "https://deno.land/x/expect@v0.2.9/mod.ts";
 export * from "https://deno.land/std@0.165.0/testing/asserts.ts";
 
-import { createPlatformScript, js2ps, ps2js, PSMap } from "../mod.ts";
+import { createPlatformScript, js2ps, parse, ps2js, PSMap } from "../mod.ts";
 
 export function evaluate(source: string, scope?: PSMap) {
   let ps = createPlatformScript();
-  let value = ps.parse(source, "script");
+  let value = parse(source, "script");
   return ps.eval(value, scope);
 }
 
