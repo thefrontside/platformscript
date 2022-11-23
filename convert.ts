@@ -137,7 +137,7 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
     } else {
       let fnmatch = first.key.value.match(/^\$\s*\((.*)\)\s*$/);
       if (fnmatch) {
-        let params = fnmatch[1];
+        let param = fnmatch[1];
         let body = yaml2ps(first.value);
         return {
           type: "fn",
@@ -146,7 +146,7 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
             let key: PSLiteral<PSString> = {
               type: "string",
               node: first.key,
-              value: params,
+              value: param,
             };
             let binding: PSMap = {
               type: "map",
