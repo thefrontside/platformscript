@@ -20,8 +20,8 @@ for await (let note of $notes.all("shipit")) {
 }
 
 const cleanup = [
-  "git push origin :refs/notes/shipit",
-  "git push origin --tags",
+  ["git", "push", "origin", ":refs/notes/shipit"],
+  ["git", "push", "origin", "--tags"],
 ];
 
 if (!dryRun) {
@@ -29,5 +29,5 @@ if (!dryRun) {
     await sh(cmd);
   }
 } else {
-  console.log(cleanup.map((cmd) => `[DRY] ${cmd}`).join("\n"));
+  console.log(cleanup.map((cmd) => `[DRY] ${cmd.join(" ")}`).join("\n"));
 }
