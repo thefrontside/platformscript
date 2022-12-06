@@ -12,11 +12,24 @@ export interface LoadOptions {
 }
 
 export function* load(options: LoadOptions): Operation<PSModule> {
-  let { location, base } = options;
+  let { location, base, env } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
 
   let content = yield* read(url);
   let body = parse(content);
+
+  return yield* moduleEval({ body, location: url, env });
+}
+
+export interface ModuleEvalOptions {
+  location: string | URL;
+  body: PSValue;
+  env?: PSEnv;
+}
+
+export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
+  let { location, body, env = createYSEnv() } = options;
+  let url = typeof location === "string" ? new URL(location) : location;
 
   let result: PSValue = body;
 
@@ -29,8 +42,6 @@ export function* load(options: LoadOptions): Operation<PSModule> {
     type: "map",
     value: new Map(),
   };
-
-  let env = options.env ?? createYSEnv();
 
   function* importSymbols(map: PSValue): Operation<void> {
     if (map.type !== "map") {

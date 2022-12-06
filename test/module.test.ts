@@ -2,7 +2,7 @@ import type { PSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
 import { describe, expect, it, useStaticFileServer } from "./suite.ts";
-import { load, ps2js } from "../mod.ts";
+import { load, moduleEval, parse, ps2js } from "../mod.ts";
 import { run } from "../deps.ts";
 import { lookup, lookup$ } from "../psmap.ts";
 
@@ -70,6 +70,23 @@ describe("a PlatformScript module", () => {
   // it("can use imported symbols from another module");
   // it("can handle circular module references");
   // it("can be specified using WASM");
+
+  it("supports evaluating a module directly without loading it from a url", async () => {
+    await run(function* () {
+      let body = parse(`
+$import:
+  names: [five]
+  from: nodeps.yaml
+myfive: $five
+$do: $myfive
+`);
+      let mod = yield* moduleEval({
+        body,
+        location: new URL(`modules/virtual-module.yaml`, import.meta.url),
+      });
+      expect(mod.value.value).toEqual(5);
+    });
+  });
 });
 
 function loadmod(url: string): Task<PSModule> {
