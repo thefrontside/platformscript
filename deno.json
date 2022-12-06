@@ -1,7 +1,16 @@
 {
   "tasks": {
     "test": "deno test --allow-read --allow-net",
-    "build:npm": "deno run -A tasks/build-npm.ts"
+    "build:npm": "deno run -A tasks/build-npm.ts",
+    "changelog-entry": "deno run -A tasks/changelog-entry.ts",
+
+    "rel:init": "deno run -A tasks/rel/cmd/init.ts",
+    "rel:current": "deno run -A tasks/rel/cmd/current.ts",
+    "rel:next": "deno run -A tasks/rel/cmd/next.ts",
+    "rel:impact": "deno run -A tasks/rel/cmd/impact.ts",
+    "rel:signoff": "deno run -A tasks/rel/cmd/signoff.ts",
+    "rel:shipit": "deno run -A tasks/rel/cmd/shipit.ts",
+    "rel:push": "deno run -A tasks/rel/cmd/push.ts"
   },
   "lint": {
     "rules": {
