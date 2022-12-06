@@ -1,6 +1,3 @@
-impact:
-
-  level: major
-  history: platformscript
+impact: major
 
 pr: https://github.com/thefrontside/platformscript/pull/8
