@@ -1,0 +1,49 @@
+name: create release request
+on:
+  push:
+    branches: [main]
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+
+    outputs:
+      current: ${{ steps.versions.outputs.current }}
+      next: ${{ steps.versions.outputs.current }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: setup deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - id: versions
+        run: |
+          deno task rel:init
+          echo "current=$(deno task rel:current platformscript --pre=alpha)" >> $GITHUB_OUTPUT
+          echo "next=$(deno task rel:next platformscript --pre=alpha)" >> $GITHUB_OUTPUT
+
+      - name: prepare
+        if: steps.versions.outputs.next != steps.versions.outputs.current
+        run: |
+          deno task rel:impact platformscript --pre=alpha | deno task changelog-entry $(deno task rel:next platformscript --pre=alpha) | cat - Changelog.md > Changelog.next.md
+          mv Changelog.next.md Changelog.md
+          deno task rel:signoff platformscript --pre=alpha --message "Prepare platformscript ${{ steps.versions.outputs.next }}"
+          deno task rel:push
+
+      - name: create release request
+        if: steps.versions.outputs.next != steps.versions.outputs.current
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
+          committer: Frontside Jack <jack@frontside.com>
+          author: Frontside Jack <jack@frontside.com>
+          branch: release/latest
+          base: main
+          title: Release PlatformScript ${{ steps.versions.outputs.next }}
+          body: |
+            TODO: say something smart about this release.
