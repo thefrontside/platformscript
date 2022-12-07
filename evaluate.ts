@@ -1,11 +1,13 @@
 import type {
   PSEnv,
+  PSFn,
   PSLiteral,
   PSMap,
   PSMapKey,
   PSTemplate,
   PSValue,
 } from "./types.ts";
+import type { Operation } from "./deps.ts";
 
 import { parseYAML } from "./deps.ts";
 import { yaml2ps } from "./convert.ts";
@@ -53,57 +55,14 @@ function* segments(t: PSTemplate): Generator<Segment> {
 
 export function createYSEnv(parent = global): PSEnv {
   let env: PSEnv = {
-    *eval(value, context = { type: "map", value: new Map() }) {
+    *eval($value, context = { type: "map", value: new Map() }) {
       let scope = concat(parent, context);
       let env = createYSEnv(scope);
 
-      if (value.type === "ref") {
-        let { key, path } = value;
+      let value = yield* bind($value, scope, []);
 
-        let result = lookup(key, scope);
-        if (result.type === "nothing") {
-          throw new ReferenceError(`'${value.key}' not defined`);
-        } else {
-          if (path.length > 0) {
-            if (result.value.type === "external" && result.value.view) {
-              let deref = result.value.view(path, result.value.value);
-              if (!deref) {
-                throw new ReferenceError(
-                  `'${path.join(".")}' not found at ${key}`,
-                );
-              }
-              if (!isPSValue(deref)) {
-                throw new TypeError(
-                  `external reference '${value.value}' did not resolve to a platformscript value`,
-                );
-              }
-              return deref;
-            } else if (result.value.type === "map") {
-              return path.reduce((current, segment) => {
-                if (current.type === "map") {
-                  let next = lookup(segment, current);
-                  if (next.type === "nothing") {
-                    throw new ReferenceError(
-                      `no such key '${segment}' in ${value.value}`,
-                    );
-                  } else {
-                    return next.value;
-                  }
-                } else {
-                  throw new TypeError(
-                    `cannot de-reference key ${segment} from '${current.type}'`,
-                  );
-                }
-              }, result.value as PSValue);
-            } else {
-              throw new TypeError(
-                `${result.value.type} '$${key}' does not support path-like references`,
-              );
-            }
-          } else {
-            return result.value;
-          }
-        }
+      if (value.type === "ref") {
+        return value;
       } else if (value.type === "template") {
         let str = "";
         for (let segment of segments(value)) {
@@ -114,54 +73,51 @@ export function createYSEnv(parent = global): PSEnv {
             str += String(result.value);
           }
         }
-        return { type: "string", value: str };
-      } else if (value.type === "map") {
-        let entries = [...value.value.entries()];
-        let [first, ...rest] = entries;
-
-        if (!first) {
-          return { type: "boolean", value: false };
+        return data.string(str);
+      } else if (value.type === "fncall") {
+        let fn = value.value;
+        if (fn.value.type === "native") {
+          return yield* fn.value.call(value);
         } else {
-          let [key, value] = first;
-          if (key.type === "ref") {
-            let fn = yield* env.eval(key);
-            if (fn.type !== "fn") {
-              throw new Error(
-                `'${key.value}' is not a function, it is a ${fn.type}`,
-              );
-            }
-            return yield* fn.value({
-              arg: value,
-              env,
-              rest: { type: "map", value: new Map(rest) },
-            });
-          } else {
-            let $entries = [] as [PSMapKey, PSValue][];
-            for (let [k, v] of entries) {
-              $entries.push([k, yield* env.eval(v)]);
-            }
-            return {
-              type: "map",
-              value: new Map($entries),
-            };
-          }
+          let arg = yield* env.eval(value.arg);
+          return yield* env.eval(
+            fn.value.body,
+            data.map({
+              [fn.param.name]: arg,
+            }),
+          );
         }
+      } else if (value.type === "map") {
+        let entries: [PSMapKey, PSValue][] = [];
+        for (let [k, v] of value.value.entries()) {
+          entries.push([k, yield* env.eval(v)]);
+        }
+        return { type: "map", value: new Map(entries) };
       } else if (value.type === "list") {
-        let result = [] as PSValue[];
+        let result: PSValue[] = [];
         for (let item of value.value) {
-          result.push(yield* env.eval(item, scope));
+          result.push(yield* env.eval(item));
         }
-        return { type: "list", value: result };
+        return data.list(result);
       } else {
         return value;
       }
     },
-    call(fn, arg, options) {
-      return fn.value({
-        arg,
-        env,
-        rest: options ?? data.map({}),
-      });
+    *call(fn, arg, rest) {
+      if (fn.value.type === "native") {
+        return yield* fn.value.call({
+          type: "fncall",
+          value: fn,
+          arg,
+          env,
+          rest: rest ?? data.map({}),
+        });
+      } else {
+        let binding = data.map({
+          [fn.param.name]: arg,
+        });
+        return yield* env.eval(fn.value.body, binding);
+      }
     },
   };
   return env;
@@ -201,13 +157,12 @@ export const letdo = {
 export const global: PSMap = {
   type: "map",
   value: new Map([
-    [{
-      type: "string",
-      value: "let",
-      holes: [],
-    }, {
-      type: "fn",
-      *value({ arg, env, rest }) {
+    [
+      {
+        type: "string",
+        value: "let",
+      },
+      data.fn(function* $let({ arg, env, rest }) {
         let bindings = letdo.getBindings({ type: "just", value: arg });
         let block = lookup("$do", rest);
         if (block.type == "just") {
@@ -215,19 +170,16 @@ export const global: PSMap = {
         } else {
           return { type: "boolean", value: false };
         }
-      },
-    }],
-    [{
-      type: "string",
-      value: "do",
-      holes: [],
-    }, {
-      type: "fn",
-      *value({ arg, env, rest }) {
+      }, { name: "bindings" }),
+    ],
+
+    [
+      data.string("do"),
+      data.fn(function* $do({ arg, env, rest }) {
         let bindings = letdo.getBindings(lookup("$let", rest));
         return yield* letdo.do(arg, bindings, env);
-      },
-    }],
+      }, { name: "block" }),
+    ],
   ]),
 };
 
@@ -259,6 +211,21 @@ export function strip(literal: PSValue): PSValue {
       type: "list",
       value: list.map((val) => strip(val as PSLiteral<PSValue>)),
     };
+  } else if (value.type === "fn" && value.value.type === "platformscript") {
+    let { body } = value.value;
+    return {
+      ...value,
+      value: {
+        type: "platformscript",
+        body: strip(body),
+      },
+    };
+  } else if (value.type === "fncall") {
+    return {
+      ...value,
+      value: strip(value.value) as PSFn,
+      arg: strip(value.arg),
+    };
   } else {
     return value;
   }
@@ -280,5 +247,127 @@ function isPSValue(value: unknown): value is PSValue {
     ].includes(check.type);
   } else {
     return false;
+  }
+}
+
+function* bind(
+  value: PSValue,
+  scope: PSMap,
+  mask: string[],
+): Operation<PSValue> {
+  if (value.type === "ref") {
+    let { key, path } = value;
+
+    if (mask.includes(key)) {
+      return value;
+    }
+
+    let result = lookup(key, scope);
+    if (result.type === "nothing") {
+      throw new ReferenceError(`'${value.key}' not defined`);
+    } else {
+      if (path.length > 0) {
+        if (result.value.type === "external" && result.value.view) {
+          let deref = result.value.view(path, result.value.value);
+          if (!deref) {
+            throw new ReferenceError(
+              `'${path.join(".")}' not found at ${key}`,
+            );
+          }
+          if (!isPSValue(deref)) {
+            throw new TypeError(
+              `external reference '${value.value}' did not resolve to a platformscript value`,
+            );
+          }
+          return deref;
+        } else if (result.value.type === "map") {
+          return path.reduce((current, segment) => {
+            if (current.type === "map") {
+              let next = lookup(segment, current);
+              if (next.type === "nothing") {
+                throw new ReferenceError(
+                  `no such key '${segment}' in ${value.value}`,
+                );
+              } else {
+                return next.value;
+              }
+            } else {
+              throw new TypeError(
+                `cannot de-reference key ${segment} from '${current.type}'`,
+              );
+            }
+          }, result.value as PSValue);
+        } else {
+          throw new TypeError(
+            `${result.value.type} '$${key}' does not support path-like references`,
+          );
+        }
+      } else {
+        return result.value;
+      }
+    }
+  } else if (value.type === "template") {
+    let expressions: PSTemplate["expressions"] = [];
+
+    for (let segment of value.expressions) {
+      let expression = yield* bind(segment.expression, scope, mask);
+      expressions.push({
+        ...segment,
+        expression: expression as PSLiteral,
+      });
+    }
+
+    return { ...value, expressions };
+  } else if (value.type === "list") {
+    let result = [] as PSValue[];
+    for (let item of value.value) {
+      result.push(yield* bind(item, scope, mask));
+    }
+    return data.list(result);
+  } else if (value.type === "map") {
+    let entries = [...value.value.entries()];
+    let [first, ...rest] = entries;
+
+    if (!first) {
+      //TODO: what is this for?
+      return { type: "boolean", value: false };
+    } else {
+      let [key, value] = first;
+      if (key.type === "ref") {
+        let fn = yield* bind(key, scope, mask);
+        if (fn.type !== "fn") {
+          throw new Error(
+            `'${key.value}' is not a function, it is a ${fn.type}`,
+          );
+        }
+        return {
+          type: "fncall",
+          value: fn,
+          arg: value,
+          env: createYSEnv(scope),
+          rest: { type: "map", value: new Map(rest) },
+        };
+      } else {
+        let $entries = [] as [PSMapKey, PSValue][];
+        for (let [k, v] of entries) {
+          $entries.push([k, yield* bind(v, scope, mask)]);
+        }
+        return {
+          type: "map",
+          value: new Map($entries),
+        };
+      }
+    }
+  } else if (value.type === "fn" && value.value.type === "platformscript") {
+    let { param, value: { body } } = value;
+    return {
+      ...value,
+      value: {
+        type: "platformscript",
+        body: yield* bind(body, scope, mask.concat(param.name)),
+      },
+    };
+  } else {
+    return value;
   }
 }
