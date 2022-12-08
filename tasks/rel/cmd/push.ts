@@ -5,8 +5,4 @@ const flags = parse(Deno.args);
 
 let [remote] = flags._;
 
-if (!remote) {
-  throw new Error("must specify a remote to `rel push`");
-}
-
-await sh(`git push ${remote} refs/notes/*:refs/notes/*`);
+await sh(`git push ${remote ?? "origin"} refs/notes/*:refs/notes/*`);
