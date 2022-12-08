@@ -23,7 +23,7 @@ let current = await $releases.current(String(lineage), prerelease);
 let next = await $releases.next(String(lineage), prerelease);
 
 if (!$releases.eq(current, next)) {
-  console.log(`Signoff: ${next.lineage}@${next.version}`);
+  console.log(`Signoff: ${next.lineage.name}@${next.version}`);
   await $notes.upsert("shipit", (content) => {
     let current = content ? yaml.parse(content) : {};
     return yaml.stringify({
