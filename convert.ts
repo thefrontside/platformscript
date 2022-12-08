@@ -6,10 +6,8 @@ import type {
 } from "./deps.ts";
 import {
   PSLiteral,
-  PSMap,
   PSMapEntry,
   PSMapKey,
-  PSString,
   PSTemplate,
   PSValue,
 } from "./types.ts";
@@ -52,14 +50,6 @@ export function js2ps(value: unknown): PSValue {
         ),
       };
     }
-  } else if (type === "function") {
-    let fn = value as (x: unknown) => unknown;
-    return {
-      type: "fn",
-      *value({ arg }) {
-        return js2ps(fn(ps2js(arg)));
-      },
-    };
   } else {
     throw new Error(
       `cannot convert JavaScript value: '${value}' into PlatformScript`,
@@ -97,37 +87,34 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
       scalar.singleQuoted || scalar.doubleQuoted ||
       typeof scalar.valueObject === "undefined"
     ) {
-      let expressions = matchTemplate(scalar.value, node);
+      let expressions = matchTemplate(scalar.value);
       if (expressions.length > 0) {
-        return {
+        return createLiteral({
           type: "template",
-          node,
           value: scalar.value,
-          expressions: expressions,
-        };
+          expressions,
+        }, node);
       }
       let match = matchReference(scalar.value);
       if (match) {
-        return {
+        return createLiteral({
           type: "ref",
-          node,
           value: scalar.value,
           key: match.key,
           path: match.path,
-        };
+        }, node);
       }
-      return {
+      return createLiteral({
         type: "string",
-        node,
         value: scalar.value,
-      };
+      }, node);
     } else {
       let value = scalar.valueObject;
       let type = typeof scalar.valueObject;
       if (!["number", "boolean"].includes(type)) {
         throw new Error(`unknown scalar type: ${type}`);
       }
-      return { type: type as "number" | "boolean", value, node };
+      return createLiteral({ type: type as "number" | "boolean", value }, node);
     }
   } else if (node.kind === 2) { // Map
     let mappings: YAMLMapping[] = node.mappings ?? [];
@@ -139,48 +126,38 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
       if (fnmatch) {
         let param = fnmatch[1];
         let body = yaml2ps(first.value);
-        return {
+        return createLiteral({
           type: "fn",
-          node,
-          *value({ arg, env }) {
-            let key: PSLiteral<PSString> = {
-              type: "string",
-              node: first.key,
-              value: param,
-            };
-            let binding: PSMap = {
-              type: "map",
-              value: new Map([[key, yield* env.eval(arg)]]),
-            };
-            return yield* env.eval(body, binding);
+          param: { name: param },
+          value: {
+            type: "platformscript",
+            body,
           },
-        };
+        }, node);
       } else {
-        return {
+        return createLiteral({
           type: "map",
-          node,
           value: new Map(mappings.map((m) => {
             let key = yaml2ps(m.key) as PSMapKey;
             let value = yaml2ps(m.value);
             return [key, value];
           })),
-        };
+        }, node);
       }
     }
   } else if (node.kind === 3) { // List
     let list = node as YAMLSequence;
-    return {
+    return createLiteral({
       type: "list",
-      node,
       value: list.items.map(yaml2ps),
-    };
+    }, node);
   } else {
     console.dir({ node }, { depth: 10 });
     throw new Error(`unknown YAMLNode of kind ${node.kind}`);
   }
 }
 
-function matchTemplate(value: string, node: YAMLNode) {
+function matchTemplate(value: string) {
   let valueIdx = 0;
   let exprIdx = 1;
   let regex = /%\(([\s\S]+?)\)/gmd;
@@ -190,11 +167,10 @@ function matchTemplate(value: string, node: YAMLNode) {
 
   for (let next = i.next(); !next.done; next = i.next()) {
     let match = next.value;
-    let literal = yaml2ps(parseYAML(match[exprIdx]));
-    literal.parent = node;
+    let expression = yaml2ps(parseYAML(match[exprIdx]));
 
     expressions.push({
-      expression: literal,
+      expression,
 
       //@ts-expect-error RegExpMatchArray#indices not yet in the default TS lib
       range: match.indices[valueIdx],
@@ -214,4 +190,11 @@ function matchReference(value: string) {
       path,
     };
   }
+}
+
+function createLiteral(value: PSValue, node: YAMLNode): PSLiteral {
+  return Object.defineProperty(value, "node", {
+    enumerable: false,
+    value: node,
+  }) as PSLiteral;
 }

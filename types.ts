@@ -22,6 +22,7 @@ export type PSValue =
   | PSList
   | PSMap
   | PSFn
+  | PSFnCall
   | PSExternal;
 
 export type PSMapKey =
@@ -34,7 +35,6 @@ export type PSMapEntry = [PSMapKey, PSValue];
 
 export type PSLiteral<T extends PSValue = PSValue> = T & {
   node: YAMLNode;
-  parent?: YAMLNode;
 };
 
 export interface PSNumber {
@@ -83,11 +83,24 @@ export interface PSExternal {
 
 export interface PSFn {
   type: "fn";
-  value(call: PSFnCall): Operation<PSValue>;
+  param: { name: string };
+  value: {
+    type: "native";
+    call(cxt: PSFnCall): Operation<PSValue>;
+  } | {
+    type: "platformscript";
+    body: PSValue;
+  };
 }
 
 export interface PSFnCall {
+  type: "fncall";
+  value: PSFn;
   arg: PSValue;
   rest: PSMap;
   env: PSEnv;
+}
+
+export interface PSFnParam {
+  name: string;
 }

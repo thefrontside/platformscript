@@ -2,6 +2,7 @@ import type {
   PSBoolean,
   PSExternal,
   PSFn,
+  PSFnCall,
   PSList,
   PSMap,
   PSNumber,
@@ -9,6 +10,7 @@ import type {
   PSString,
   PSValue,
 } from "./types.ts";
+import type { Operation } from "./deps.ts";
 
 export function number(value: number): PSNumber {
   return { type: "number", value };
@@ -53,6 +55,16 @@ export function external(
   return { type: "external", value, view };
 }
 
-export function fn(value: PSFn["value"]): PSFn {
-  return { type: "fn", value };
+export function fn(
+  call: (cxt: PSFnCall) => Operation<PSValue>,
+  param: PSFn["param"],
+): PSFn {
+  return {
+    type: "fn",
+    param,
+    value: {
+      type: "native",
+      call,
+    },
+  };
 }
