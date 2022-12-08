@@ -124,7 +124,7 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
     if (!first) {
       return { type: "map", value: new Map(), node };
     } else {
-      let fnmatch = first.key.value.match(/^\$\s*\((.*)\)\s*$/);
+      let fnmatch = first.key.value.match(/^\(\s*(.*)\)\s*=>$/);
       if (fnmatch) {
         let param = fnmatch[1];
         let body = yaml2ps(first.value);

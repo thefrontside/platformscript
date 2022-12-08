@@ -4,7 +4,8 @@ import type { PSFn } from "../types.ts";
 
 describe("function literal", () => {
   it("is defined as a mapping", () => {
-    let fn = parse("$(x): $x") as PSFn;
+    let fn = parse("(x)=>: $x") as PSFn;
     expect(fn.type).toEqual("fn");
+    expect(fn.param.name).toEqual("x");
   });
 });

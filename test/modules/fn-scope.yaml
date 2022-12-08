@@ -3,4 +3,4 @@ $import:
   from: ./nodeps.yaml
 
 to: $str
-say: { $(thing): "%($thing) %($to): %($str)" }
+say: { (thing)=>: "%($thing) %($to): %($str)" }
