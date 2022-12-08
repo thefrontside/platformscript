@@ -31,6 +31,8 @@ jobs:
       - name: prepare
         if: steps.versions.outputs.next != steps.versions.outputs.current
         run: |
+          git config --global user.email "jack@frontside.com"
+          git config --global user.name "Frontside Jack"
           deno task rel:impact platformscript --pre=alpha | deno task changelog-entry $(deno task rel:next platformscript --pre=alpha) | cat - Changelog.md > Changelog.next.md
           mv Changelog.next.md Changelog.md
           deno task rel:signoff platformscript --pre=alpha --message "Prepare platformscript ${{ steps.versions.outputs.next }}"
