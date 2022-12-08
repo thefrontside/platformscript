@@ -52,4 +52,23 @@ $do: { $say: Hello }
     let interp = ps.createPlatformScript();
     await interp.moduleEval(program, import.meta.url);
   });
+
+  it("can parse method syntax", async () => {
+    let map = ps.parse(`{x: 5, y(x): $x}`);
+    assert(map.type === "map");
+    let x = lookup("x", map);
+    assert(x.type === "just");
+    expect(x.value.value).toEqual(5);
+
+    let y = lookup("y", map);
+    assert(y.type === "just");
+    assert(y.value.type === "fn");
+
+    let interp = ps.createPlatformScript();
+
+    expect(await interp.call(y.value, ps.string("Hello"))).toEqual({
+      type: "string",
+      value: "Hello",
+    });
+  });
 });
