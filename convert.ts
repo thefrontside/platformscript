@@ -8,11 +8,13 @@ import {
   PSLiteral,
   PSMapEntry,
   PSMapKey,
+  PSString,
   PSTemplate,
   PSValue,
 } from "./types.ts";
 
 import { parseYAML } from "./deps.ts";
+import * as data from "./data.ts";
 
 /**
  * Convert a JavaScript value into a PlatformScript value
@@ -138,9 +140,23 @@ export function yaml2ps(node: YAMLNode): PSLiteral<PSValue> {
         return createLiteral({
           type: "map",
           value: new Map(mappings.map((m) => {
-            let key = yaml2ps(m.key) as PSMapKey;
             let value = yaml2ps(m.value);
-            return [key, value];
+
+            // use method syntax
+            let mmatch = m.key.value.match(/^\s*(.+)\((.*)\)\s*$/);
+            if (mmatch) {
+              let [, key, param] = mmatch;
+              return [data.string(key), {
+                type: "fn",
+                param: { name: param },
+                value: {
+                  type: "platformscript",
+                  body: value,
+                },
+              } as PSValue];
+            } else {
+              return [yaml2ps(m.key) as PSString, value];
+            }
           })),
         }, node);
       }
