@@ -9,5 +9,5 @@ await sh([
   "git",
   "push",
   `${remote ?? "origin"}`,
-  "refs/notes/*:refs/notes/*`",
+  "refs/notes/*:refs/notes/*",
 ]);
