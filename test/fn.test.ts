@@ -5,7 +5,7 @@ import { lookup } from "../psmap.ts";
 describe("fn", () => {
   it("can be called directly", async () => {
     let interp = ps.createPlatformScript();
-    let program = ps.parse("$(thing): Hello %($thing)!");
+    let program = ps.parse("(thing)=>: Hello %($thing)!");
     let fn = await interp.eval(program);
     assert(fn.type === "fn");
     expect(
@@ -14,7 +14,7 @@ describe("fn", () => {
   });
 
   it("can access the local symbols of a function in which it was defined", async () => {
-    let program = ps.parse("$(x): { $(y): '%($x) %($y)' }");
+    let program = ps.parse("(x)=>: { (y)=>: '%($x) %($y)' }");
     let interp = ps.createPlatformScript();
     let fn = await interp.eval(program);
 
@@ -28,7 +28,7 @@ describe("fn", () => {
   it("can access the module scope in which it was defined", async () => {
     let program = ps.parse(`
 saying: "Hello World"
-say: { $(): $saying }
+say: { ()=>: $saying }
 `);
 
     let interp = ps.createPlatformScript();

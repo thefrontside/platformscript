@@ -83,7 +83,7 @@ $do:
 
   describe("functions", () => {
     it("can define a function with anonymous function syntax and invoke it", async () => {
-      expect(await eval2js("{$let: {id: { $(x): $x } }, $do: {$id: 'hi'} }"))
+      expect(await eval2js("{$let: {id: { (x)=>: $x } }, $do: {$id: 'hi'} }"))
         .toEqual(
           "hi",
         );
