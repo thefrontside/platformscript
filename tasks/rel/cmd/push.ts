@@ -5,4 +5,9 @@ const flags = parse(Deno.args);
 
 let [remote] = flags._;
 
-await sh(`git push ${remote ?? "origin"} refs/notes/*:refs/notes/*`);
+await sh([
+  "git",
+  "push",
+  `${remote ?? "origin"}`,
+  "refs/notes/*:refs/notes/*`",
+]);
