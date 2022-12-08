@@ -36,7 +36,7 @@ jobs:
           deno task rel:impact platformscript --pre=alpha | deno task changelog-entry $(deno task rel:next platformscript --pre=alpha) | cat - Changelog.md > Changelog.next.md
           mv Changelog.next.md Changelog.md
           deno task rel:signoff platformscript --pre=alpha --message "Prepare platformscript ${{ steps.versions.outputs.next }}"
-          deno task rel:push
+          deno task rel:push origin
 
       - name: create release request
         if: steps.versions.outputs.next != steps.versions.outputs.current
