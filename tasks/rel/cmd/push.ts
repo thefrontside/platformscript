@@ -8,6 +8,7 @@ let [remote] = flags._;
 await sh([
   "git",
   "push",
+  "--force",
   `${remote ?? "origin"}`,
   "refs/notes/*:refs/notes/*",
 ]);

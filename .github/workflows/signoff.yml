@@ -35,7 +35,7 @@ jobs:
           git config --global user.name "Frontside Jack"
           deno task rel:impact platformscript --pre=alpha | deno task changelog-entry $(deno task rel:next platformscript --pre=alpha) | cat - Changelog.md > Changelog.next.md
           mv Changelog.next.md Changelog.md
-          deno task fmt
+          deno fmt
           git commit -am "prepare platformscript ${{ steps.versions.outputs.next }}"
 
           deno task rel:signoff platformscript --pre=alpha
