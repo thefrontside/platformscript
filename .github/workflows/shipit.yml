@@ -20,4 +20,5 @@ jobs:
 
       - name:
         run: |
+          deno task rel:init
           deno task rel:shipit

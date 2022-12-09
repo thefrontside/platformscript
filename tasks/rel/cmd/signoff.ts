@@ -3,17 +3,13 @@ import * as $releases from "../releases.ts";
 import * as $notes from "../notes.ts";
 
 const flags = parse(Deno.args, {
-  "string": ["message", "pre"],
+  "string": ["pre"],
 });
 
 let [lineage] = flags._;
 
 if (!lineage) {
   throw new Error(`prepare requires lineage`);
-}
-
-if (!flags.message) {
-  throw new Error(`prepare requires message`);
 }
 
 let prerelease = flags.pre;
