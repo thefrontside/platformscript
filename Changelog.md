@@ -1,3 +1,7 @@
+## 1.0.0-alpha.9
+
+- fix scoping for native functions
+
 ## 1.0.0-alpha.8
 
 - Add `method():` syntax for quickly defining a map of functions
