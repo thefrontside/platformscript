@@ -75,18 +75,7 @@ export function createYSEnv(parent = global): PSEnv {
         }
         return data.string(str);
       } else if (value.type === "fncall") {
-        let fn = value.value;
-        if (fn.value.type === "native") {
-          return yield* fn.value.call(value);
-        } else {
-          let arg = yield* env.eval(value.arg);
-          return yield* env.eval(
-            fn.value.body,
-            data.map({
-              [fn.param.name]: arg,
-            }),
-          );
-        }
+        return yield* env.call(value.value, value.arg, value.rest);
       } else if (value.type === "map") {
         let entries: [PSMapKey, PSValue][] = [];
         for (let [k, v] of value.value.entries()) {
@@ -120,6 +109,7 @@ export function createYSEnv(parent = global): PSEnv {
       }
     },
   };
+
   return env;
 }
 

@@ -71,4 +71,24 @@ $do: { $say: Hello }
       value: "Hello",
     });
   });
+
+  it("can reference values from arguments to native functions", async () => {
+    let interp = ps.createPlatformScript(() =>
+      ps.map({
+        id: ps.fn(function* $id({ arg, env }) {
+          return yield* env.eval(arg);
+        }, { name: "x" }),
+      })
+    );
+
+    let program = ps.parse(`
+$let:
+  myid(x):
+    $id: $x
+$do:
+  $myid: hello world
+`);
+    let result = await interp.eval(program);
+    expect(result.value).toEqual("hello world");
+  });
 });
