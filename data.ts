@@ -2,7 +2,7 @@ import type {
   PSBoolean,
   PSExternal,
   PSFn,
-  PSFnCall,
+  PSFnCallContext,
   PSList,
   PSMap,
   PSNumber,
@@ -56,7 +56,7 @@ export function external(
 }
 
 export function fn(
-  call: (cxt: PSFnCall) => Operation<PSValue>,
+  call: (cxt: PSFnCallContext) => Operation<PSValue>,
   param: PSFn["param"],
 ): PSFn {
   return {

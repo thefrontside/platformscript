@@ -75,7 +75,14 @@ export function createYSEnv(parent = global): PSEnv {
         }
         return data.string(str);
       } else if (value.type === "fncall") {
-        return yield* env.call(value.value, value.arg, value.rest);
+        let { arg, rest, value: ref } = value;
+        let fn = ref.type === "ref" ? yield* env.eval(ref) : ref;
+        if (fn.type !== "fn") {
+          throw new Error(
+            `${fn.value} is not a function. It is of type '${fn.type}'`,
+          );
+        }
+        return yield* env.call(fn, arg, rest);
       } else if (value.type === "map") {
         let entries: [PSMapKey, PSValue][] = [];
         for (let [k, v] of value.value.entries()) {
@@ -95,8 +102,7 @@ export function createYSEnv(parent = global): PSEnv {
     *call(fn, arg, rest) {
       if (fn.value.type === "native") {
         return yield* fn.value.call({
-          type: "fncall",
-          value: fn,
+          fn,
           arg,
           env,
           rest: rest ?? data.map({}),
@@ -324,8 +330,8 @@ function* bind(
     } else {
       let [key, value] = first;
       if (key.type === "ref") {
-        let fn = yield* bind(key, scope, mask);
-        if (fn.type !== "fn") {
+        let fn = mask.includes(key.key) ? key : yield* bind(key, scope, mask);
+        if (fn.type !== "fn" && fn.type !== "ref") {
           throw new Error(
             `'${key.value}' is not a function, it is a ${fn.type}`,
           );
@@ -333,8 +339,7 @@ function* bind(
         return {
           type: "fncall",
           value: fn,
-          arg: value,
-          env: createYSEnv(scope),
+          arg: yield* bind(value, scope, mask),
           rest: { type: "map", value: new Map(rest) },
         };
       } else {
