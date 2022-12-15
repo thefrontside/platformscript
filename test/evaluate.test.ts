@@ -73,9 +73,6 @@ $do:
       expect(await eval2js(`{$let: {x: 5 }, $do: $x}`)).toEqual(5);
     });
 
-    it("allows binding expressions to appear afterwards", async () => {
-      expect(await eval2js(`{$do: $x, $let: { x: 5 }}`)).toEqual(5);
-    });
     it("evaluates an empty let binding as false", async () => {
       expect(await eval2js(`$let: {x: 5}`)).toEqual(false);
     });

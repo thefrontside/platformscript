@@ -91,4 +91,19 @@ $do:
     let result = await interp.eval(program);
     expect(result.value).toEqual("hello world");
   });
+
+  it("can invoke a function that is accessible off a function parameter scope", async () => {
+    let program = ps.parse(`
+$let:
+  holder:
+    id(x): $x
+  hi(thing): { $thing.id: "hello" }
+$do: { $hi: $holder }
+`);
+    let interp = ps.createPlatformScript();
+    expect(await interp.eval(program)).toEqual({
+      type: "string",
+      value: "hello",
+    });
+  });
 });

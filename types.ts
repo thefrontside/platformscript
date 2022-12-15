@@ -86,7 +86,7 @@ export interface PSFn {
   param: { name: string };
   value: {
     type: "native";
-    call(cxt: PSFnCall): Operation<PSValue>;
+    call(cxt: PSFnCallContext): Operation<PSValue>;
   } | {
     type: "platformscript";
     body: PSValue;
@@ -95,7 +95,13 @@ export interface PSFn {
 
 export interface PSFnCall {
   type: "fncall";
-  value: PSFn;
+  value: PSRef | PSFn;
+  arg: PSValue;
+  rest: PSMap;
+}
+
+export interface PSFnCallContext {
+  fn: PSFn;
   arg: PSValue;
   rest: PSMap;
   env: PSEnv;
