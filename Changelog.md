@@ -1,3 +1,7 @@
+## 1.0.0-alpha.10
+
+- Allow calling fns that are referenced by a fn parameter
+
 ## 1.0.0-alpha.9
 
 - fix scoping for native functions
