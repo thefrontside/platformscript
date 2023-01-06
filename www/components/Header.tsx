@@ -4,7 +4,7 @@ import NavigationBar from "./NavigationBar.tsx";
 export default function Header(props: { title: string; active: string }) {
   return (
     <header
-      class={"mx-auto max-w-screen-lg flex gap-3 justify-between"}
+      class={"mx-auto flex justify-between"}
     >
       {(
         <div class="p-4 flex items-center">

@@ -12,7 +12,7 @@ export const handler: Handlers<unknown, { base: string }> = {
 }
 
 
-const description = "PlatformScript is a friendly, fully-featured programming language that uses 100% YAML for its syntax."
+const description = "PlatformScript is a friendly, fully-featured programming language with 100% pure YAML syntax."
 
 export interface PageData {
   base: string;
