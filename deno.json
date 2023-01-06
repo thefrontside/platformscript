@@ -17,17 +17,17 @@
       "exclude": ["prefer-const", "require-yield"]
     },
     "files": {
-      "exclude": ["build"]
+      "exclude": ["build", "www"]
     }
   },
   "fmt": {
     "files": {
-      "exclude": ["README.md", "build/"]
+      "exclude": ["README.md", "build/", "www"]
     }
   },
   "test": {
     "files": {
-      "exclude": ["build"]
+      "exclude": ["build", "www"]
     }
   }
 }
