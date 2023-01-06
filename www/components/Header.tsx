@@ -6,12 +6,10 @@ export default function Header(props: { active: string }) {
     <header
       class={"mx-auto flex justify-between"}
     >
-      {
-        <div class="p-4 flex items-center">
-          <Logo />
-          <DocsTitle />
-        </div>
-      }
+      <div class="p-4 flex items-center">
+        <Logo />
+        <DocsTitle />
+      </div>
       <NavigationBar class="hidden md:flex" active={props.active} />
     </header>
   );
