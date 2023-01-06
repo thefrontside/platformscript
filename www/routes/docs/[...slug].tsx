@@ -2,10 +2,9 @@ import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
-import Header from "../../components/Header.tsx";
 import DocsTitle from "../../components/DocsTitle.tsx";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
-import Footer from "../../components/Footer.tsx";
+import { createMainPage } from "../../components/main-page.tsx";
 import {
   SLUGS,
   TABLE_OF_CONTENTS,
@@ -14,7 +13,8 @@ import {
 
 interface Data {
   page: Page;
-  base: string | null;
+  base: string;
+  active: string;
 }
 
 interface Page extends TableOfContentsEntry {
@@ -22,19 +22,13 @@ interface Page extends TableOfContentsEntry {
   data: Record<string, unknown>;
 }
 
-export const handler: Handlers<Data> = {
-  async GET(req, ctx) {
+export const handler: Handlers<Data, { base: string }> = {
+  async GET(_req, ctx) {
     const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
         status: 307,
         headers: { location: "/docs/introduction" },
-      });
-    }
-    if (slug === "concepts/architechture") {
-      return new Response("", {
-        status: 307,
-        headers: { location: "/docs/concepts/architecture" },
       });
     }
 
@@ -46,12 +40,12 @@ export const handler: Handlers<Data> = {
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
     const page = { ...entry, markdown: body, data: attrs ?? {} };
-    const resp = ctx.render({ page, base: req.headers.get("x-base") });
+    const resp = ctx.render({ page, base: ctx.state.base, active: slug });
     return resp;
   },
 };
 
-export default function DocsPage(props: PageProps<Data>) {
+export default createMainPage(function DocsPage(props: PageProps<Data>) {
   let description;
 
   if (props.data.page.data.description) {
@@ -61,19 +55,18 @@ export default function DocsPage(props: PageProps<Data>) {
   return (
     <>
       <Head>
-        <title>{props.data.page?.title ?? "Not Found"} | PlatformScript docs</title>
-        <base href={props.data.base ?? "/"} />
+        <title>
+          {props.data.page?.title ?? "Not Found"} | PlatformScript docs
+        </title>
         <link rel="stylesheet" href={`gfm.css?build=${__FRSH_BUILD_ID}`} />
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <Header title="docs" active="docs" />
         <Main path={props.url.pathname} page={props.data.page} />
-        <Footer />
       </div>
     </>
   );
-}
+});
 
 function Main(props: { path: string; page: Page }) {
   return (
@@ -128,7 +121,7 @@ function MobileSidebar(props: { path: string }) {
         />
         <div class="relative flex-1 flex flex-col w-[16rem] h-full bg-white border(r-2 gray-100)">
           <div class="p-4 border(b-2 gray-100) bg-green-300">
-            <DocsTitle title="docs" />
+            <DocsTitle />
           </div>
           <nav class="pt-2 pb-16 px-4 overflow-x-auto">
             <DocsSidebar path={props.path} />
