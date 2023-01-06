@@ -38,19 +38,15 @@ export default createMainPage(function IndexPage() {
         </FeatureSection>
 
         <FeatureSection title="Share reusable YAML functions">
-          <p>
-            Any PlatformScript YAML can be a module if it’s accessible via a
-            URL. You can create reusable features by simply uploading the file
-            to a gist, any HTTP server, or anywhere on the file system.
-          </p>
+          Any PlatformScript YAML can be a module if it’s accessible via a URL.
+          You can create reusable features by simply uploading the file to a
+          gist, any HTTP server, or anywhere on the file system.
         </FeatureSection>
         <FeatureSection title="Create executable applications">
-          <p>
-            You can create a CLI tool by pointing the PlatformScript executable
-            at a YAML document with CLI command configurations. PlatformScript
-            will automatically download the YAML script, interpret it and run
-            the commands.
-          </p>
+          You can create a CLI tool by pointing the PlatformScript executable at
+          a YAML document with CLI command configurations. PlatformScript will
+          automatically download the YAML script, interpret it and run the
+          commands.
         </FeatureSection>
       </main>
     </>
