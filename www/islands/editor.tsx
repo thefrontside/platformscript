@@ -61,9 +61,8 @@ export function Editor() {
     if (ref.current) {
       let mod = await import(`${monacoSrc}`);
       self.MonacoEnvironment = {
-        getWorkerUrl: function (moduleId, label) {
-          console.dir({ moduleId, label });
-          return 'https://esm.sh/monaco-editor@0.34.1/esm/vs/editor/editor.worker?worker'
+        getWorkerUrl() {
+          return 'https://esm.sh/v102/monaco-yaml@4.0.2/yaml.worker?worker'
         }
       };
 
@@ -139,11 +138,10 @@ export function Editor() {
   );
 
   return (
-    <div ref={ref}       style={{
+    <div ref={ref} style={{
       width: '100%',
       height: '100%'
-    }}
-    className="react-monaco-editor-container">
+    }}>
       {lib.type === 'pending' && <>Loading...</>}
       {lib.type === 'rejected' && String(lib.error)}
     </div>
