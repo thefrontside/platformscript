@@ -60,11 +60,12 @@ export function Editor() {
   let lib = useAsync(async () => {
     if (ref.current) {
       let mod = await import(`${monacoSrc}`);
+
       self.MonacoEnvironment = {
-        getWorkerUrl() {
-          return 'https://esm.sh/v102/monaco-yaml@4.0.2/yaml.worker?worker'
+        getWorker: function () {
+          return new Worker('/worker.js', {type: 'module'});
         }
-      };
+      }
 
       editor.current = mod.editor.create(ref.current, {
         language: 'yaml',
