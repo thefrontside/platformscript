@@ -30,6 +30,9 @@ function getWorkerURL(request: Request) {
       return 'https://esm.sh/monaco-editor@0.34.1/esm/vs/editor/editor.worker?worker'
     case 'yaml':
       return 'https://esm.sh/monaco-yaml@4.0.2/yaml.worker?worker';
+    case 'javascript':
+    case 'typescript':
+      return `https://esm.sh/monaco-editor@0.34.1/esm/vs/language/typescript/ts.worker?worker`
     default:
       return `https://esm.sh/monaco-editor@0.34.1/esm/vs/language/${label}/${label}.worker?worker`
   }
