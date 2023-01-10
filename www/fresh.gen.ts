@@ -14,6 +14,7 @@ import * as $7 from "./routes/playground.tsx";
 import * as $8 from "./routes/worker.js.ts";
 import * as $$0 from "./islands/CopyArea.tsx";
 import * as $$1 from "./islands/editor.tsx";
+import * as $$2 from "./islands/monaco-editor.tsx";
 
 const manifest = {
   routes: {
@@ -30,6 +31,7 @@ const manifest = {
   islands: {
     "./islands/CopyArea.tsx": $$0,
     "./islands/editor.tsx": $$1,
+    "./islands/monaco-editor.tsx": $$2,
   },
   baseUrl: import.meta.url,
   config,

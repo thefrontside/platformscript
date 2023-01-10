@@ -1,23 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "preact/hooks";
+import { useState, useRef, useEffect } from "preact/hooks";
 
-const monacoSrc = 'https://esm.sh/monaco-editor@0.34.1';
-
-
-function getMonacoUrl(path?: string) {
-  if (path) {
-    return `${monacoSrc}/${path}`;
-  } else {
-    return monacoSrc;
-
-  }
-}
-
-
-declare global {
-  interface Window {
-    MonacoEnvironment: any;
-  }
-}
 
 const defaultYaml = `
 $<>:
@@ -48,6 +30,8 @@ $<>:
 `.replace(/:$/m, ': ');
 
 
+
+
 export function Editor() {
 
   let ref = useRef(null);
@@ -62,9 +46,10 @@ export function Editor() {
       let mod = await import(`${monacoSrc}`);
 
       self.MonacoEnvironment = {
-        getWorker: function () {
-          return new Worker('/worker.js', {type: 'module'});
-        }
+        getWorker: function (moduleId, label) {
+          console.dir({ moduleId, label });
+          return new Worker(`./worker.js?label=${label}`, { type: 'module' });
+        },
       }
 
       editor.current = mod.editor.create(ref.current, {
@@ -77,6 +62,7 @@ export function Editor() {
         minimap: {
           enabled: false,
         },
+
       });
 
 
@@ -88,10 +74,10 @@ export function Editor() {
 
   useEffect(() => {
     if (editor.current) {
-      editor.current.layout({
-        height: window.innerHeight / 2,
-        width: window.innerWidth / 2
-      })
+      /* editor.current.layout({
+       *   height: window.innerHeight / 2,
+       *   width: window.innerWidth / 2
+       * }) */
       _subscription.current = editor.current.onDidChangeModelContent(() => {
         if (!__prevent_trigger_change_event.current) {
           setYaml(editor.current.getValue());
@@ -139,34 +125,11 @@ export function Editor() {
   );
 
   return (
-    <div ref={ref} style={{
-      width: '100%',
-      height: '100%'
-    }}>
+    <div ref={ref} class="h-full">
       {lib.type === 'pending' && <>Loading...</>}
       {lib.type === 'rejected' && String(lib.error)}
     </div>
   )
-}
-
-type AsyncState<T> = {
-  type: 'resolved';
-  value: T;
-} | {
-  type: 'rejected';
-  error: Error;
-} | {
-  type: 'pending';
-}
-
-function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncState<T> {
-  let [state, setState] = useState<AsyncState<T>>({ type: 'pending' });
-  useEffect(() => {
-    fn()
-      .then(value => setState({ type: 'resolved', value }))
-      .catch(error => setState({ type: 'rejected', error }));
-  }, deps);
-  return state;
 }
 
 export default Editor;
