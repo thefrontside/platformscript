@@ -197,7 +197,7 @@ export function MonacoEditor({
     <div
       ref={containerElement}
       style={style}
-      className="react-monaco-editor-container"
+      className="relative react-monaco-editor-container"
     />
   );
 }
