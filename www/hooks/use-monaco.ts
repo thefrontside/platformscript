@@ -3,17 +3,12 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 
 const monacoSrc = 'https://esm.sh/monaco-editor@0.34.1';
 
-declare global {
-  interface Window {
-    MonacoEnvironment:  {
-      getWorker(moduleId: string, label: string): Worker;
-    };
-  }
-}
+//only ever load the monaco library once.
+let cache: AsyncState<MonacoModule> = { type: 'pending' };
 
 export function useMonaco(deps: unknown[]): AsyncState<MonacoModule> {
   if (!IS_BROWSER) {
-    return { type: 'pending' }
+    return cache;
   }
   
   self.MonacoEnvironment = {
@@ -22,10 +17,15 @@ export function useMonaco(deps: unknown[]): AsyncState<MonacoModule> {
     },
   }
 
-  return useAsync(() => import(monacoSrc), deps); 
+  return useAsync(async () => {
+    if (cache.type !== 'resolved') {
+      cache = await import(monacoSrc);
+    }
+    return cache;
+  }, deps); 
 }
 
-type AsyncState<T> = {
+export type AsyncState<T> = {
   type: 'resolved';
   value: T;
 } | {
@@ -35,7 +35,7 @@ type AsyncState<T> = {
   type: 'pending';
 }
 
-function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncState<T> {
+export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncState<T> {
   let [state, setState] = useState<AsyncState<T>>({ type: 'pending' });
   useEffect(() => {
     fn()
