@@ -182,6 +182,12 @@ export function MonacoEditor({
     }
   }, [theme, lib.type]);
 
+  useEffect(() => {
+    if (editor.current && value) {
+      editor.current.setValue(value);
+    }
+  }, [value]);
+
   useEffect(
     () => () => {
       if (editor.current) {
