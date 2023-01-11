@@ -44,6 +44,11 @@ export interface MonacoEditorBaseProps {
    */
   defaultValue?: string;
 
+    /**
+   * Default language of the current model
+   */
+    defaultLanguage?: string;
+
   /**
    * The initial language of the auto created model in the editor. Defaults to 'javascript'.
    */

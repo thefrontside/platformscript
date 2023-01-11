@@ -1,8 +1,7 @@
 import type { Handlers } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
-
 import { createMainPage } from "../components/main-page.tsx";
-import { MonacoEditor } from "../islands/monaco-editor.tsx";
+import Editor from "../islands/Editor.tsx";
 
 export const handler: Handlers<unknown, { base: string }> = {
   async GET(_req, cxt) {
@@ -12,13 +11,14 @@ export const handler: Handlers<unknown, { base: string }> = {
 };
 
 export default createMainPage(function Playground() {
+ 
   return (
     <>
       <Head>
         <title>PlatformScript: playground</title>
         <meta name="description" content="Try out PlatformScript in your browser" />
       </Head>
-      <MonacoEditor value="true" language="yaml" />
+      <Editor value="true" language="yaml" />
     </>
   )
 });

@@ -11,6 +11,7 @@ export function MonacoEditor({
   value = null,
   defaultValue = "",
   language = "javascript",
+  defaultLanguage="javascript",
   theme = null,
   options = {},
   overrideServices = {},
@@ -20,7 +21,6 @@ export function MonacoEditor({
   onChange = noop,
   className = null,
 }: MonacoEditorProps) {
-
   const containerElement = useRef<HTMLDivElement | null>(null);
   let lib = useMonaco([containerElement]);
 
@@ -41,6 +41,7 @@ export function MonacoEditor({
     }),
     [fixedWidth, fixedHeight]
   );
+
 
   const handlers = useMemo(() => {
     if (lib.type !== 'resolved') {
@@ -86,10 +87,19 @@ export function MonacoEditor({
             containerElement.current,
             {
               value: finalValue,
+              defaultLanguage,
               language,
               ...(className ? { extraEditorClassName: className } : {}),
               ...finalOptions,
               ...(theme ? { theme } : {}),
+              scrollbar: {
+                alwaysConsumeMouseWheel: false,
+              },
+              overviewRulerBorder: false,
+              minimap: {
+                enabled: false
+              },
+              forceMoveMarkers: true
             },
             overrideServices
           );
@@ -105,8 +115,6 @@ export function MonacoEditor({
         initMonaco,
       }
     }
-
-
   }, [lib, containerElement]);
 
   const {
@@ -132,8 +140,7 @@ export function MonacoEditor({
             text: value as string,
           },
         ],
-
-        undefined
+        () => null
       );
       editor.current.pushUndoStop();
       __prevent_trigger_change_event.current = false;
@@ -148,7 +155,7 @@ export function MonacoEditor({
         monaco.editor.setModelLanguage(model, language);
       }
     }
-  }, [language]);
+  }, [language, lib.type]);
 
   useEffect(() => {
     if (editor.current) {
@@ -160,20 +167,20 @@ export function MonacoEditor({
         ...optionsWithoutModel,
       });
     }
-  }, [className, options]);
+  }, [className, options, lib.type]);
 
   useEffect(() => {
     if (editor.current) {
       editor.current.layout();
     }
-  }, [width, height]);
+  }, [width, height, lib.type]);
 
   useEffect(() => {
     if (lib.type === 'resolved') {
       let monaco = lib.value;
       monaco.editor.setTheme(theme);
     }
-  }, [theme]);
+  }, [theme, lib.type]);
 
   useEffect(
     () => () => {
