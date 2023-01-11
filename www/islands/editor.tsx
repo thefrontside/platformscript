@@ -68,6 +68,5 @@ export default function Editor({ language, value }: EditorProps) {
     defaultLanguage="yaml"
     value={yaml}
     onChange={(value) => setYaml(value)}
-    theme="vs-dark"
   />
 }

@@ -1,7 +1,7 @@
 import type { Handlers } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 import { createMainPage } from "../components/main-page.tsx";
-import Editor from "../islands/Editor.tsx";
+import Editor from "../islands/editor.tsx";
 
 export const handler: Handlers<unknown, { base: string }> = {
   async GET(_req, cxt) {
