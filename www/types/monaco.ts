@@ -1,5 +1,9 @@
 import type monacoEditor from "https://esm.sh/monaco-editor@0.34.1";
 
+export interface MonacoModule {
+  editor: typeof monacoEditor.editor;  
+}
+
 /**
  * @remarks
  * This will be `IStandaloneEditorConstructionOptions` in newer versions of monaco-editor, or

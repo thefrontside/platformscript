@@ -17,6 +17,7 @@ export default createMainPage(function Playground() {
       <Head>
         <title>PlatformScript: playground</title>
         <meta name="description" content="Try out PlatformScript in your browser" />
+        <link rel="stylesheet" type="text/css" href="https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css"/>
       </Head>
       <Editor value="true" language="yaml" />
     </>

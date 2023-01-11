@@ -1,28 +1,70 @@
+import type { MonacoModule } from "../types/monaco.ts";
+
 import { useState, useEffect } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
 const monacoSrc = 'https://esm.sh/monaco-editor@0.34.1';
 
-//only ever load the monaco library once.
-let cache: AsyncState<MonacoModule> = { type: 'pending' };
+type Cache = {
+  state: 'empty';
+} | {
+  state: 'attempting';
+  attempt: Promise<MonacoModule>;
+} | {
+  state: 'resolved';
+  mod: MonacoModule;
+} | {
+  state: 'rejected';
+  error: Error;
+};
 
-export function useMonaco(deps: unknown[]): AsyncState<MonacoModule> {
+let cache: Cache = { state: 'empty' };
+
+export function useMonaco(): AsyncState<MonacoModule> {
   if (!IS_BROWSER) {
-    return cache;
+    return { type: "pending" };
   }
-  
-  self.MonacoEnvironment = {
-    getWorker: function (_moduleId, label) {
-      return new Worker(`./worker.js?label=${label}`, { type: 'module' });
-    },
-  }
+
 
   return useAsync(async () => {
-    if (cache.type !== 'resolved') {
-      cache = await import(monacoSrc);
+    if (cache.state === 'resolved') {
+      return cache.mod;
+    } else if (cache.state === 'attempting') {
+      return await cache.attempt;
+    } else {
+      let attempt = load();
+      cache = {
+        state: 'attempting',
+        attempt,
+      };
+      return await attempt;
     }
-    return cache;
-  }, deps); 
+  });
+}
+
+async function load() {
+  try {
+    let mod = await import(monacoSrc);
+
+    self.MonacoEnvironment = {
+      getWorker: function (_moduleId, label) {
+        return new Worker(`./worker.js?label=${label}`, { type: 'module' });
+      },
+    };
+    
+    cache = {
+      state: 'resolved',
+      mod,
+    };
+    
+    return mod;
+  } catch (error) {
+    cache = {
+      state: 'rejected',
+      error,
+    };
+    throw error;
+  }
 }
 
 export type AsyncState<T> = {
@@ -44,5 +86,3 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncSt
   }, deps);
   return state;
 }
-
-
