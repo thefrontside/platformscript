@@ -48,15 +48,22 @@ async function load() {
 
     self.MonacoEnvironment = {
       getWorker: function (_moduleId, label) {
-        return new Worker(`./worker.js?label=${label}`, { type: 'module' });
+        return new Worker(`./worker.js?label=${label}&v=0.34.1`, { type: 'module' });
       },
     };
-    
+
+    // <link rel="stylesheet" type="text/css" href="https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css"/>    
+    document.head.appendChild(Object.assign(document.createElement('link'), {
+      rel: "stylesheet",
+      type: "text/css",
+      href: "https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css",
+    }));
+
     cache = {
       state: 'resolved',
       mod,
     };
-    
+
     return mod;
   } catch (error) {
     cache = {

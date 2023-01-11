@@ -22,7 +22,7 @@ export function MonacoEditor({
   className = null,
 }: MonacoEditorProps) {
   const containerElement = useRef<HTMLDivElement | null>(null);
-  let lib = useMonaco([containerElement]);
+  let lib = useMonaco();
 
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
