@@ -1,8 +1,6 @@
 import type monacoEditor from "https://esm.sh/monaco-editor@0.34.1";
 
-export interface MonacoModule {
-  editor: typeof monacoEditor.editor;  
-}
+export type MonacoModule = typeof monacoEditor;
 
 /**
  * @remarks
@@ -14,17 +12,17 @@ export type EditorConstructionOptions = NonNullable<
 >;
 
 export type EditorWillMount = (
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void | EditorConstructionOptions;
 
 export type EditorDidMount = (
   editor: monacoEditor.editor.IStandaloneCodeEditor,
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void;
 
 export type EditorWillUnmount = (
   editor: monacoEditor.editor.IStandaloneCodeEditor,
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void | EditorConstructionOptions;
 
 export type ChangeHandler = (
@@ -113,17 +111,17 @@ export interface MonacoEditorProps extends MonacoEditorBaseProps {
 // ============ Diff Editor ============
 
 export type DiffEditorWillMount = (
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void | monacoEditor.editor.IStandaloneEditorConstructionOptions;
 
 export type DiffEditorDidMount = (
   editor: monacoEditor.editor.IStandaloneDiffEditor,
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void;
 
 export type DiffEditorWillUnmount = (
   editor: monacoEditor.editor.IStandaloneDiffEditor,
-  monaco: typeof monacoEditor
+  monaco: MonacoModule
 ) => void;
 
 export type DiffChangeHandler = ChangeHandler;
