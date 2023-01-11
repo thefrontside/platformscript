@@ -13,6 +13,7 @@ import * as $6 from "./routes/index.tsx";
 import * as $7 from "./routes/playground.tsx";
 import * as $8 from "./routes/worker.js.ts";
 import * as $$0 from "./islands/CopyArea.tsx";
+import * as $$1 from "./islands/ps-playground.tsx";
 
 const manifest = {
   routes: {
@@ -28,6 +29,7 @@ const manifest = {
   },
   islands: {
     "./islands/CopyArea.tsx": $$0,
+    "./islands/ps-playground.tsx": $$1,
   },
   baseUrl: import.meta.url,
   config,
