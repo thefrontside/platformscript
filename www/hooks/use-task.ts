@@ -15,7 +15,7 @@ export function useTask<T>(
   op: (event: T) => Operation<void>,
   deps: unknown[] = [],
 ): InvokeTask<T> {
-  let [current, setCurrent] = useState<Task<void>>(run(() => suspend()), deps);
+  let [current, setCurrent] = useState<Task<void>>(run(() => suspend()));
 
   useEffect(() => current.halt, deps.concat(current));
 

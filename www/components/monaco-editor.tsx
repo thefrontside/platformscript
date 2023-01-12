@@ -11,7 +11,6 @@ export function MonacoEditor({
   value = null,
   defaultValue = "",
   language = "javascript",
-  defaultLanguage = "javascript",
   theme = null,
   options = {},
   overrideServices = {},
@@ -87,7 +86,6 @@ export function MonacoEditor({
             containerElement.current,
             {
               value: finalValue,
-              defaultLanguage,
               language,
               ...(className ? { extraEditorClassName: className } : {}),
               ...finalOptions,
@@ -99,7 +97,6 @@ export function MonacoEditor({
               minimap: {
                 enabled: false,
               },
-              forceMoveMarkers: true,
             },
             overrideServices,
           );
@@ -148,10 +145,12 @@ export function MonacoEditor({
 
   useEffect(() => {
     if (editor.current) {
-      const model = editor.current.getModel();
       if (lib.type === "resolved") {
         let monaco = lib.value;
-        monaco.editor.setModelLanguage(model, language);
+        let model = editor.current.getModel();
+        if (model) {
+          monaco.editor.setModelLanguage(model, language);
+        }
       }
     }
   }, [language, lib.type]);
@@ -177,7 +176,9 @@ export function MonacoEditor({
   useEffect(() => {
     if (lib.type === "resolved") {
       let monaco = lib.value;
-      monaco.editor.setTheme(theme);
+      if (theme) {
+        monaco.editor.setTheme(theme);
+      }
     }
   }, [theme, lib.type]);
 
