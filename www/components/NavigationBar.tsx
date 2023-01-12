@@ -9,6 +9,10 @@ export default function NavigationBar(
       href: "docs/introduction",
     },
     {
+      name: "Playground",
+      href: "playground",
+    },
+    {
       name: "Discord",
       href: "https://discord.gg/frontside",
     },
