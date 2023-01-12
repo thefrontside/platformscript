@@ -12,14 +12,16 @@ export const handler: Handlers<unknown, { base: string }> = {
 };
 
 export default createMainPage(function Playground() {
-
   return (
     <>
       <Head>
         <title>PlatformScript: playground</title>
-        <meta name="description" content="Try out PlatformScript in your browser" />
+        <meta
+          name="description"
+          content="Try out PlatformScript in your browser"
+        />
       </Head>
       <PSPlayGround />
     </>
-  )
+  );
 });

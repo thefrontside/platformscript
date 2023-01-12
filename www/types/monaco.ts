@@ -2,7 +2,8 @@ import type monacoEditor from "https://esm.sh/monaco-editor@0.34.1";
 
 export type MonacoModule = typeof monacoEditor;
 
-export type MonacoEditorCreateOptions = monacoEditor.editor.IStandaloneEditorConstructionOptions;
+export type MonacoEditorCreateOptions =
+  monacoEditor.editor.IStandaloneEditorConstructionOptions;
 
 /**
  * @remarks
@@ -14,22 +15,22 @@ export type EditorConstructionOptions = NonNullable<
 >;
 
 export type EditorWillMount = (
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void | EditorConstructionOptions;
 
 export type EditorDidMount = (
   editor: monacoEditor.editor.IStandaloneCodeEditor,
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void;
 
 export type EditorWillUnmount = (
   editor: monacoEditor.editor.IStandaloneCodeEditor,
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void | EditorConstructionOptions;
 
 export type ChangeHandler = (
   value: string,
-  event: monacoEditor.editor.IModelContentChangedEvent
+  event: monacoEditor.editor.IModelContentChangedEvent,
 ) => void;
 
 export interface MonacoEditorBaseProps {
@@ -48,10 +49,10 @@ export interface MonacoEditorBaseProps {
    */
   defaultValue?: string;
 
-    /**
+  /**
    * Default language of the current model
    */
-    defaultLanguage?: string;
+  defaultLanguage?: string;
 
   /**
    * The initial language of the auto created model in the editor. Defaults to 'javascript'.
@@ -113,17 +114,17 @@ export interface MonacoEditorProps extends MonacoEditorBaseProps {
 // ============ Diff Editor ============
 
 export type DiffEditorWillMount = (
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void | monacoEditor.editor.IStandaloneEditorConstructionOptions;
 
 export type DiffEditorDidMount = (
   editor: monacoEditor.editor.IStandaloneDiffEditor,
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void;
 
 export type DiffEditorWillUnmount = (
   editor: monacoEditor.editor.IStandaloneDiffEditor,
-  monaco: MonacoModule
+  monaco: MonacoModule,
 ) => void;
 
 export type DiffChangeHandler = ChangeHandler;

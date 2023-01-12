@@ -1,10 +1,10 @@
 import DocsTitle from "./DocsTitle.tsx";
 import NavigationBar from "./NavigationBar.tsx";
 
-export default function Header(props: { active: string, className?: string }) {
+export default function Header(props: { active: string; className?: string }) {
   return (
     <header
-      class={props.className ?? '' + ' flex justify-between'}
+      class={props.className ?? "" + " flex justify-between"}
     >
       <div class="p-4 flex items-center">
         <Logo />

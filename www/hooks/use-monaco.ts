@@ -1,40 +1,39 @@
 import type { MonacoModule } from "../types/monaco.ts";
 
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
-const monacoSrc = 'https://esm.sh/monaco-editor@0.34.1';
+const monacoSrc = "https://esm.sh/monaco-editor@0.34.1";
 
 type Cache = {
-  state: 'empty';
+  state: "empty";
 } | {
-  state: 'attempting';
+  state: "attempting";
   attempt: Promise<MonacoModule>;
 } | {
-  state: 'resolved';
+  state: "resolved";
   mod: MonacoModule;
 } | {
-  state: 'rejected';
+  state: "rejected";
   error: Error;
 };
 
-let cache: Cache = { state: 'empty' };
+let cache: Cache = { state: "empty" };
 
 export function useMonaco(): AsyncState<MonacoModule> {
   if (!IS_BROWSER) {
     return { type: "pending" };
   }
 
-
   return useAsync(async () => {
-    if (cache.state === 'resolved') {
+    if (cache.state === "resolved") {
       return cache.mod;
-    } else if (cache.state === 'attempting') {
+    } else if (cache.state === "attempting") {
       return await cache.attempt;
     } else {
       let attempt = load();
       cache = {
-        state: 'attempting',
+        state: "attempting",
         attempt,
       };
       return await attempt;
@@ -48,26 +47,28 @@ async function load() {
 
     self.MonacoEnvironment = {
       getWorker: function (_moduleId, label) {
-        return new Worker(`./worker.js?label=${label}&v=0.34.1`, { type: 'module' });
+        return new Worker(`./worker.js?label=${label}&v=0.34.1`, {
+          type: "module",
+        });
       },
     };
 
-    // <link rel="stylesheet" type="text/css" href="https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css"/>    
-    document.head.appendChild(Object.assign(document.createElement('link'), {
+    // <link rel="stylesheet" type="text/css" href="https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css"/>
+    document.head.appendChild(Object.assign(document.createElement("link"), {
       rel: "stylesheet",
       type: "text/css",
       href: "https://esm.sh/monaco-editor@0.34.1/min/vs/editor/editor.main.css",
     }));
 
     cache = {
-      state: 'resolved',
+      state: "resolved",
       mod,
     };
 
     return mod;
   } catch (error) {
     cache = {
-      state: 'rejected',
+      state: "rejected",
       error,
     };
     throw error;
@@ -75,21 +76,24 @@ async function load() {
 }
 
 export type AsyncState<T> = {
-  type: 'resolved';
+  type: "resolved";
   value: T;
 } | {
-  type: 'rejected';
+  type: "rejected";
   error: Error;
 } | {
-  type: 'pending';
-}
+  type: "pending";
+};
 
-export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncState<T> {
-  let [state, setState] = useState<AsyncState<T>>({ type: 'pending' });
+export function useAsync<T>(
+  fn: () => Promise<T>,
+  deps: unknown[] = [],
+): AsyncState<T> {
+  let [state, setState] = useState<AsyncState<T>>({ type: "pending" });
   useEffect(() => {
     fn()
-      .then(value => setState({ type: 'resolved', value }))
-      .catch(error => setState({ type: 'rejected', error }));
+      .then((value) => setState({ type: "resolved", value }))
+      .catch((error) => setState({ type: "rejected", error }));
   }, deps);
   return state;
 }

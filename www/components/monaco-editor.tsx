@@ -6,12 +6,12 @@ import { useEffect, useMemo, useRef } from "preact/hooks";
 import { useMonaco } from "../hooks/use-monaco.ts";
 
 export function MonacoEditor({
-  width = '100%',
-  height = '100%',
+  width = "100%",
+  height = "100%",
   value = null,
   defaultValue = "",
   language = "javascript",
-  defaultLanguage="javascript",
+  defaultLanguage = "javascript",
   theme = null,
   options = {},
   overrideServices = {},
@@ -39,18 +39,17 @@ export function MonacoEditor({
       width: fixedWidth,
       height: fixedHeight,
     }),
-    [fixedWidth, fixedHeight]
+    [fixedWidth, fixedHeight],
   );
 
-
   const handlers = useMemo(() => {
-    if (lib.type !== 'resolved') {
+    if (lib.type !== "resolved") {
       return {
         handleEditorWillMount: noop,
         handleEditorDidMount: noop,
         handleEditorWillUnmount: noop,
         initMonaco: noop,
-      }
+      };
     } else {
       let monaco = lib.value;
       const handleEditorWillMount = () => {
@@ -61,15 +60,16 @@ export function MonacoEditor({
       const handleEditorDidMount = () => {
         if (editor.current !== null) {
           editorDidMount(editor.current, monaco);
-          _subscription.current = editor.current.onDidChangeModelContent((event) => {
-            if (!__prevent_trigger_change_event.current) {
-              if (editor.current) {
-                onChange(editor.current.getValue(), event);
+          _subscription.current = editor.current.onDidChangeModelContent(
+            (event) => {
+              if (!__prevent_trigger_change_event.current) {
+                if (editor.current) {
+                  onChange(editor.current.getValue(), event);
+                }
               }
-            }
-          });
+            },
+          );
         }
-
       };
 
       const handleEditorWillUnmount = () => {
@@ -97,11 +97,11 @@ export function MonacoEditor({
               },
               overviewRulerBorder: false,
               minimap: {
-                enabled: false
+                enabled: false,
               },
-              forceMoveMarkers: true
+              forceMoveMarkers: true,
             },
-            overrideServices
+            overrideServices,
           );
           // After initializing monaco editor
           handleEditorDidMount();
@@ -113,7 +113,7 @@ export function MonacoEditor({
         handleEditorDidMount,
         handleEditorWillUnmount,
         initMonaco,
-      }
+      };
     }
   }, [lib, containerElement]);
 
@@ -121,7 +121,6 @@ export function MonacoEditor({
     handleEditorWillUnmount,
     initMonaco,
   } = handlers;
-
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(initMonaco, [handlers]);
@@ -140,7 +139,7 @@ export function MonacoEditor({
             text: value as string,
           },
         ],
-        () => null
+        () => null,
       );
       editor.current.pushUndoStop();
       __prevent_trigger_change_event.current = false;
@@ -176,7 +175,7 @@ export function MonacoEditor({
   }, [width, height, lib.type]);
 
   useEffect(() => {
-    if (lib.type === 'resolved') {
+    if (lib.type === "resolved") {
       let monaco = lib.value;
       monaco.editor.setTheme(theme);
     }
@@ -203,7 +202,7 @@ export function MonacoEditor({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
 
   return (

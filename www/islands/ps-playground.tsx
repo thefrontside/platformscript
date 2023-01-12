@@ -1,7 +1,7 @@
 import { MonacoEditor } from "../components/monaco-editor.tsx";
 import type { MonacoEditorCreateOptions } from "../types/monaco.ts";
-import { useState, useEffect } from "preact/hooks";
-import { useTask, sleep } from "../hooks/use-task.ts";
+import { useEffect, useState } from "preact/hooks";
+import { sleep, useTask } from "../hooks/use-task.ts";
 
 import { parse } from "../../mod.ts";
 
@@ -14,12 +14,12 @@ const sharedOptions: MonacoEditorCreateOptions = {
 
 const sourceOptions = {
   ...sharedOptions,
-}
+};
 
 const previewOptions = {
   ...sharedOptions,
   readOnly: true,
-}
+};
 
 export default function PSPlayground() {
   let value = "true";
@@ -28,7 +28,7 @@ export default function PSPlayground() {
     yield* sleep(200);
     try {
       parse(value);
-      setResult(value)
+      setResult(value);
     } catch (error) {
       setResult(`${error.name}: ${error.message}`);
     }
@@ -38,8 +38,17 @@ export default function PSPlayground() {
 
   return (
     <div class="h-full grid grid-cols-2 gap-4">
-      <MonacoEditor value={value} language="yaml" options={sourceOptions} onChange={onChange} />
-      <MonacoEditor value={String(result)} language="yaml" options={previewOptions} />
+      <MonacoEditor
+        value={value}
+        language="yaml"
+        options={sourceOptions}
+        onChange={onChange}
+      />
+      <MonacoEditor
+        value={String(result)}
+        language="yaml"
+        options={previewOptions}
+      />
     </div>
-  )
+  );
 }

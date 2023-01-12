@@ -15,8 +15,9 @@ const LINKS = [
 ];
 
 export default function Footer(props: {
-  className?: string; }) {
-  let className = props.className ?? '';
+  className?: string;
+}) {
+  let className = props.className ?? "";
   return (
     <footer className={className}>
       <div class="mx-auto max-w-screen-lg flex items-center justify-center gap-8">
