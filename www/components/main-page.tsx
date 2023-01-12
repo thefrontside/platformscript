@@ -21,9 +21,13 @@ export function createMainPage<TProps extends MainPageProps = MainPageProps>(
         <Head>
           <base href={props.data.base} />
         </Head>
-        <Header active={props.data.active} />
-        <Component {...props} />
-        <Footer />
+        <div class="flex flex-col h-screen justify-between">
+          <Header active={props.data.active} />
+          <main class="h-full">
+            <Component {...props} />
+          </main>
+          <Footer className="border(t-2 gray-200) bg-gray-100 h-32 flex flex-col gap-4 justify-center" />
+        </div>
       </>
     );
   };

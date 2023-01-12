@@ -14,9 +14,12 @@ const LINKS = [
   },
 ];
 
-export default function Footer() {
+export default function Footer(props: {
+  className?: string;
+}) {
+  let className = props.className ?? "";
   return (
-    <footer class="border(t-2 gray-200) bg-gray-100 h-32 flex flex-col gap-4 justify-center">
+    <footer className={className}>
       <div class="mx-auto max-w-screen-lg flex items-center justify-center gap-8">
         {LINKS.map((link) => (
           <a href={link.href} class="text-gray-600 hover:underline">
