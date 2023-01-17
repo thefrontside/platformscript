@@ -50,7 +50,10 @@ export default createMainPage(function DocsPage(props: PageProps<Data>) {
   if (props.data.page.data.description) {
     description = String(props.data.page.data.description);
   }
-  let installer = props.data.base !== '/' ? `${props.data.base}/pls` : `${props.url.protocol}//${props.url.host}/pls`
+  let base = props.data.base?.trim().replace(/\/$/, "") ?? "";
+  let installer = base !== ""
+    ? `${base}/pls`
+    : `${props.url.protocol}//${props.url.host}/pls`;
 
   return (
     <>
@@ -62,13 +65,17 @@ export default createMainPage(function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <Main path={props.url.pathname} page={props.data.page} installer={installer} />
+        <Main
+          path={props.url.pathname}
+          page={props.data.page}
+          installer={installer}
+        />
       </div>
     </>
   );
 });
 
-function Main(props: { path: string; page: Page, installer: string }) {
+function Main(props: { path: string; page: Page; installer: string }) {
   return (
     <div class="flex-1">
       <MobileSidebar path={props.path} />
@@ -140,8 +147,11 @@ function DesktopSidebar(props: { path: string }) {
   );
 }
 
-function Content(props: { page: Page, installer: string }) {
-  const html = gfm.render(props.page.markdown).replace("@@INSTALLER@@", props.installer);
+function Content(props: { page: Page; installer: string }) {
+  const html = gfm.render(props.page.markdown).replace(
+    "@@INSTALLER@@",
+    props.installer,
+  );
 
   return (
     <main class="py-6 overflow-hidden">
