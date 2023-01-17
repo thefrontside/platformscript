@@ -24,7 +24,6 @@ interface Page extends TableOfContentsEntry {
 
 export const handler: Handlers<Data, { base: string }> = {
   async GET(req, ctx) {
-    console.dir({ req });
     const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
@@ -52,7 +51,6 @@ export default createMainPage(function DocsPage(props: PageProps<Data>) {
     description = String(props.data.page.data.description);
   }
   let installer = props.data.base !== '/' ? `${props.data.base}/pls` : `${props.url.protocol}//${props.url.host}/pls`
-  console.dir({ installer });
 
   return (
     <>
