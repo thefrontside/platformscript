@@ -1,5 +1,11 @@
 {
   "introduction": {
     "title": "Introduction"
+  },
+  "getting-started": {
+    "title": "Getting Started",
+    "pages": [
+      ["installation", "Installation"]
+    ]
   }
 }
