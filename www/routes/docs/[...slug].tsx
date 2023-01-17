@@ -23,7 +23,8 @@ interface Page extends TableOfContentsEntry {
 }
 
 export const handler: Handlers<Data, { base: string }> = {
-  async GET(_req, ctx) {
+  async GET(req, ctx) {
+    console.dir({ req });
     const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
@@ -47,10 +48,11 @@ export const handler: Handlers<Data, { base: string }> = {
 
 export default createMainPage(function DocsPage(props: PageProps<Data>) {
   let description;
-
   if (props.data.page.data.description) {
     description = String(props.data.page.data.description);
   }
+  let installer = props.data.base !== '/' ? `${props.data.base}/pls` : `${props.url.protocol}//${props.url.host}/pls`
+  console.dir({ installer });
 
   return (
     <>
@@ -62,13 +64,13 @@ export default createMainPage(function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <Main path={props.url.pathname} page={props.data.page} />
+        <Main path={props.url.pathname} page={props.data.page} installer={installer} />
       </div>
     </>
   );
 });
 
-function Main(props: { path: string; page: Page }) {
+function Main(props: { path: string; page: Page, installer: string }) {
   return (
     <div class="flex-1">
       <MobileSidebar path={props.path} />
@@ -98,7 +100,7 @@ function Main(props: { path: string; page: Page }) {
       </div>
       <div class="mx-auto max-w-screen-lg px-4 flex gap-6">
         <DesktopSidebar path={props.path} />
-        <Content page={props.page} />
+        <Content page={props.page} installer={props.installer} />
       </div>
     </div>
   );
@@ -140,8 +142,9 @@ function DesktopSidebar(props: { path: string }) {
   );
 }
 
-function Content(props: { page: Page }) {
-  const html = gfm.render(props.page.markdown);
+function Content(props: { page: Page, installer: string }) {
+  const html = gfm.render(props.page.markdown).replace("@@INSTALLER@@", props.installer);
+
   return (
     <main class="py-6 overflow-hidden">
       <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6">
