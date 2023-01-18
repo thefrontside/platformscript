@@ -7,5 +7,5 @@ export const handler: Handlers = {
       headers: { "Location": path },
       status: 307,
     });
-  }
-}
+  },
+};

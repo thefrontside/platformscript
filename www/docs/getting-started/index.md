@@ -6,4 +6,4 @@ descriiption: |
 
 In this section, you will learn how to:
 
-*  [Install](docs/getting-started/installation) the PlatformScript executable
+- [Install](docs/getting-started/installation) the PlatformScript executable
