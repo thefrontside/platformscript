@@ -21,7 +21,7 @@ export function createMainPage<TProps extends MainPageProps = MainPageProps>(
         <Head>
           <base href={props.data.base} />
         </Head>
-        <div class="flex flex-col h-screen justify-between">
+        <div class="flex flex-col justify-between">
           <Header active={props.data.active} />
           <main class="h-full">
             <Component {...props} />
