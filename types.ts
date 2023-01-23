@@ -1,5 +1,5 @@
 //deno-lint-ignore-file no-explicit-any
-import { Operation, YAMLNode } from "./deps.ts";
+import { Operation, YAMLParsedNode } from "./deps.ts";
 
 export interface PSEnv {
   eval(value: PSValue, scope?: PSMap): Operation<PSValue>;
@@ -34,7 +34,7 @@ export type PSMapKey =
 export type PSMapEntry = [PSMapKey, PSValue];
 
 export type PSLiteral<T extends PSValue = PSValue> = T & {
-  node: YAMLNode;
+  node: YAMLParsedNode;
 };
 
 export interface PSNumber {
@@ -50,17 +50,18 @@ export interface PSBoolean {
 export interface PSString {
   type: "string";
   value: string;
+  quote?: "single" | "double";
 }
 
 export interface PSTemplate {
   type: "template";
-  value: string;
-  expressions: { expression: PSLiteral; range: [number, number] }[];
+  value: PSString;
+  expressions: { expression: PSValue; range: [number, number] }[];
 }
 
 export interface PSRef {
   type: "ref";
-  value: string;
+  value: PSString;
   key: string;
   path: string[];
 }
@@ -89,6 +90,7 @@ export interface PSFn {
     call(cxt: PSFnCallContext): Operation<PSValue>;
   } | {
     type: "platformscript";
+    head: PSString;
     body: PSValue;
   };
 }

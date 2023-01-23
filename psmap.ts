@@ -37,10 +37,13 @@ export type Maybe<T> =
     value: void;
   };
 
-export function lookup(key: string, map: PSMap): Maybe<PSValue> {
+export function lookup(
+  key: string | number | boolean,
+  map: PSMap,
+): Maybe<PSValue> {
   for (let entry of map.value.entries()) {
     let [k, value] = entry;
-    if (k.value.toString() === key) {
+    if (k.value === key) {
       return { type: "just", value };
     }
   }
