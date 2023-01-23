@@ -27,7 +27,7 @@ export function string(value: string): PSString {
 export function ref(key: string, path: string[]): PSRef {
   return {
     type: "ref",
-    value: `$${[key].concat(path).join(".")}`,
+    value: string(`$${[key].concat(path).join(".")}`),
     key,
     path,
   };

@@ -1,6 +1,5 @@
 import type {
   PSEnv,
-  PSFn,
   PSLiteral,
   PSMap,
   PSMapKey,
@@ -9,8 +8,8 @@ import type {
 } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
-import { parseYAML } from "./deps.ts";
-import { yaml2ps } from "./convert.ts";
+import { read } from "./read.ts";
+import { recognize } from "./recognize.ts";
 import { concat, lookup, map, Maybe } from "./psmap.ts";
 import * as data from "./data.ts";
 
@@ -19,7 +18,7 @@ type Segment = {
   value: string;
 } | {
   type: "expr";
-  ref: PSLiteral;
+  ref: PSValue;
 };
 
 function* segments(t: PSTemplate): Generator<Segment> {
@@ -28,7 +27,7 @@ function* segments(t: PSTemplate): Generator<Segment> {
     let idx = 0;
     for (let expr of expressions) {
       let [start, end] = expr.range;
-      let substr = t.value.slice(idx, start);
+      let substr = t.value.value.slice(idx, start);
       yield {
         type: "const",
         value: substr,
@@ -39,16 +38,16 @@ function* segments(t: PSTemplate): Generator<Segment> {
       };
       idx = end;
     }
-    if (idx < t.value.length) {
+    if (idx < t.value.value.length) {
       yield {
         type: "const",
-        value: t.value.slice(idx),
+        value: t.value.value.slice(idx),
       };
     }
   } else {
     yield {
       type: "const",
-      value: t.value,
+      value: t.value.value,
     };
   }
 }
@@ -59,7 +58,7 @@ export function createYSEnv(parent = global): PSEnv {
       let scope = concat(parent, context);
       let env = createYSEnv(scope);
 
-      let value = yield* bind($value, scope, []);
+      let value = yield* bind(recognize($value), scope, []);
 
       if (value.type === "ref") {
         return value;
@@ -82,7 +81,7 @@ export function createYSEnv(parent = global): PSEnv {
             `${fn.value} is not a function. It is of type '${fn.type}'`,
           );
         }
-        return yield* env.call(fn, arg, rest);
+        return yield* env.call(fn, yield* env.eval(arg), rest);
       } else if (value.type === "map") {
         let entries: [PSMapKey, PSValue][] = [];
         for (let [k, v] of value.value.entries()) {
@@ -179,52 +178,8 @@ export const global: PSMap = {
   ]),
 };
 
-export function parse(source: string, filename = "script"): PSLiteral<PSValue> {
-  let yaml = parseYAML(source, { filename });
-  let [error] = yaml.errors;
-  if (!yaml) {
-    throw new SyntaxError(`empty string is not a YAML Document`);
-  } else if (error) {
-    throw error;
-  }
-  return yaml2ps(yaml);
-}
-
-export function strip(literal: PSValue): PSValue {
-  //@ts-expect-error stripping is safe because we're just dropping the node
-  let { node: _, ...value } = literal;
-  if (value.type === "map") {
-    let map = value.value;
-    return {
-      type: "map",
-      value: new Map(
-        [...map.entries()].map(([k, v]) => [strip(k) as PSMapKey, strip(v)]),
-      ),
-    };
-  } else if (value.type === "list") {
-    let list = value.value;
-    return {
-      type: "list",
-      value: list.map((val) => strip(val as PSLiteral<PSValue>)),
-    };
-  } else if (value.type === "fn" && value.value.type === "platformscript") {
-    let { body } = value.value;
-    return {
-      ...value,
-      value: {
-        type: "platformscript",
-        body: strip(body),
-      },
-    };
-  } else if (value.type === "fncall") {
-    return {
-      ...value,
-      value: strip(value.value) as PSFn,
-      arg: strip(value.arg),
-    };
-  } else {
-    return value;
-  }
+export function parse(source: string, _filename = "script"): PSValue {
+  return read(source);
 }
 
 // this is kinda cheesy. We should beef up this check.
@@ -321,44 +276,21 @@ function* bind(
     }
     return data.list(result);
   } else if (value.type === "map") {
-    let entries = [...value.value.entries()];
-    let [first, ...rest] = entries;
-
-    if (!first) {
-      //TODO: what is this for?
-      return { type: "boolean", value: false };
-    } else {
-      let [key, value] = first;
-      if (key.type === "ref") {
-        let fn = mask.includes(key.key) ? key : yield* bind(key, scope, mask);
-        if (fn.type !== "fn" && fn.type !== "ref") {
-          throw new Error(
-            `'${key.value}' is not a function, it is a ${fn.type}`,
-          );
-        }
-        return {
-          type: "fncall",
-          value: fn,
-          arg: yield* bind(value, scope, mask),
-          rest: { type: "map", value: new Map(rest) },
-        };
-      } else {
-        let $entries = [] as [PSMapKey, PSValue][];
-        for (let [k, v] of entries) {
-          $entries.push([k, yield* bind(v, scope, mask)]);
-        }
-        return {
-          type: "map",
-          value: new Map($entries),
-        };
-      }
+    let $entries = [] as [PSMapKey, PSValue][];
+    for (let [k, v] of value.value.entries()) {
+      $entries.push([k, yield* bind(v, scope, mask)]);
     }
+    return {
+      type: "map",
+      value: new Map($entries),
+    };
   } else if (value.type === "fn" && value.value.type === "platformscript") {
     let { param, value: { body } } = value;
     return {
       ...value,
       value: {
         type: "platformscript",
+        head: value.value.head,
         body: yield* bind(body, scope, mask.concat(param.name)),
       },
     };

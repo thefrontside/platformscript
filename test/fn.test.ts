@@ -54,7 +54,9 @@ $do: { $say: Hello }
   });
 
   it("can parse method syntax", async () => {
-    let map = ps.parse(`{x: 5, y(x): $x}`);
+    let interp = ps.createPlatformScript();
+    let map = await interp.eval(ps.parse(`{x: 5, y(x): $x}`));
+
     assert(map.type === "map");
     let x = lookup("x", map);
     assert(x.type === "just");
@@ -63,8 +65,6 @@ $do: { $say: Hello }
     let y = lookup("y", map);
     assert(y.type === "just");
     assert(y.value.type === "fn");
-
-    let interp = ps.createPlatformScript();
 
     expect(await interp.call(y.value, ps.string("Hello"))).toEqual({
       type: "string",
@@ -88,6 +88,7 @@ $let:
 $do:
   $myid: hello world
 `);
+
     let result = await interp.eval(program);
     expect(result.value).toEqual("hello world");
   });
