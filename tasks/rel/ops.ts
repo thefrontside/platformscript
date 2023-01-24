@@ -13,6 +13,15 @@ export async function* filter<T>(
   }
 }
 
+export async function* map<T, R>(
+  items: AsyncGenerator<T>,
+  fn: (value: T) => Promise<R>,
+): AsyncGenerator<R> {
+  for await (let item of items) {
+    yield await fn(item);
+  }
+}
+
 export async function* until<T>(
   items: AsyncGenerator<T>,
   limit: Predicate<T>,
