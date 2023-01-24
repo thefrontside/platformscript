@@ -5,10 +5,14 @@ import * as $git from "./git.ts";
 
 export type Upsert = (content?: string) => string;
 
-export async function upsert(ref: string, fn: Upsert): Promise<void> {
-  let current = await read(ref);
+export async function upsert(
+  ref: string,
+  fn: Upsert,
+  commitId?: string,
+): Promise<void> {
+  let current = await read(ref, commitId);
   let next = fn(current ? current.content : void 0);
-  await write(ref, next);
+  await write(ref, next, commitId);
 }
 
 export async function read(

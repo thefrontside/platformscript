@@ -1,6 +1,6 @@
-import { parse, yaml } from "../deps.ts";
+import { parse } from "../deps.ts";
 import * as $releases from "../releases.ts";
-import * as $notes from "../notes.ts";
+import * as $signoffs from "../signoffs.ts";
 
 const flags = parse(Deno.args, {
   "string": ["pre"],
@@ -20,13 +20,8 @@ let next = await $releases.next(String(lineage), prerelease);
 
 if (!$releases.eq(current, next)) {
   console.log(`Signoff: ${next.lineage.name}@${next.version}`);
-  await $notes.upsert("shipit", (content) => {
-    let current = content ? yaml.parse(content) : {};
-    return yaml.stringify({
-      ...current,
-      [lineage]: next.tag,
-    });
-  });
+
+  await $signoffs.signoff(next);
 } else {
   console.warn("Nothing to sign off.");
 }

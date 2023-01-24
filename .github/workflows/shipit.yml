@@ -22,3 +22,5 @@ jobs:
         run: |
           deno task rel:init
           deno task rel:shipit
+          git push origin 'refs/notes/*:refs/notes/*'
+          git push origin --tags

@@ -39,3 +39,9 @@ export interface Idempotent<T> {
   redundant: boolean;
   value: T;
 }
+
+export interface Signoff {
+  commitId: string;
+  releases: string[];
+  taggedAt?: string;
+}
