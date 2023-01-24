@@ -21,9 +21,9 @@ export function createMainPage<TProps extends MainPageProps = MainPageProps>(
         <Head>
           <base href={props.data.base} />
         </Head>
-        <div class="flex flex-col justify-between">
-          <Header active={props.data.active} />
-          <main class="h-full">
+        <div class="h-screen flex flex-col">
+          <Header className="flex justify-between" active={props.data.active} />
+          <main style={{flexGrow: 1}}>
             <Component {...props} />
           </main>
           <Footer className="border(t-2 gray-200) bg-gray-100 h-32 flex flex-col gap-4 justify-center" />
