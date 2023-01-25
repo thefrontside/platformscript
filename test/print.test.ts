@@ -16,15 +16,12 @@ describe("print()", () => {
   });
   it("properly escapes strings", () => {
     expect(print(data.string("'hello'"))).toEqual(`"'hello'"`);
-    expect(print(data.string('"hello"'))).toEqual(`'"hello'`);
-    expect(print(data.string(`"'weird`))).toEqual(`"\\"'weird"\n`);
+    expect(print(data.string('"hello"'))).toEqual(`'"hello"'`);
+    expect(print(data.string(`"'weird`))).toEqual(`"\\"'weird"`);
   });
   it("prints lists", () => {
     expect(print(data.list([data.string("hello"), data.string("world")])))
-      .toEqual(`
-- hello
-- world
-`);
+      .toEqual(`- hello\n- world`);
   });
   it("prints maps", () => {
     expect(print(data.map({
@@ -48,13 +45,13 @@ describe("print()", () => {
   it("prints native functions", () => {
     expect(print(data.fn(function* id(cxt) {
       return cxt.arg;
-    }, { name: "x" }))).toEqual("(x)=>: [[native fn]]");
+    }, { name: "x" }))).toEqual("(x)=>: <[native fn]>");
   });
   it("prints function calls", () => {
-    expect(print(parse("$id: 5"))).toEqual("$id: 5")
+    expect(print(parse("$id: 5"))).toEqual("$id: 5");
   });
   it("prints external values", () => {
-    expect(print(data.external({}))).toEqual("[[external]]");
+    expect(print(data.external({}))).toEqual("<[external]>");
   });
   it("is the inverse of read by default", () => {
     expect(print(parse(`
@@ -65,6 +62,6 @@ plain: hi
 flow: {$read: hello world}
 block:
   $read: hello world
-`)))
+`)));
   });
 });

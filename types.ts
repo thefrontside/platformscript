@@ -100,6 +100,7 @@ export interface PSFnCall {
   value: PSRef | PSFn;
   arg: PSValue;
   rest: PSMap;
+  source: PSMap;
 }
 
 export interface PSFnCallContext {
