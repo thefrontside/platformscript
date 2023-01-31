@@ -1,6 +1,5 @@
 $import:
-  names: [five, id]
-  from: "./nodeps.yaml"
+  five, id: ./nodeps.yaml
 
 myfive: $five
 hello: { $id: "hello world" }

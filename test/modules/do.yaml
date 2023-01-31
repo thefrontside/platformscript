@@ -1,5 +1,3 @@
 $import:
-  names: [id]
-  from: "./nodeps.yaml"
-$do:
-  $id: "hello from do"
+  id: ./nodeps.yaml
+$id: hello from module

@@ -1,6 +1,5 @@
 $import:
-  names: [str]
-  from: ./nodeps.yaml
+  str: ./nodeps.yaml
 
 to: $str
 say: { (thing)=>: "%($thing) %($to): %($str)" }
