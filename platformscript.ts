@@ -35,7 +35,7 @@ export function createPlatformScript(
       return run((env) => env.eval(value, bindings));
     },
     moduleEval(value, url) {
-      return run((env) => moduleEval({ body: value, location: url, env }));
+      return run((env) => moduleEval({ source: value, location: url, env }));
     },
     load(location, base) {
       return run((env) => load({ location, base, env }));

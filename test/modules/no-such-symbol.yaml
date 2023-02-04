@@ -1,3 +1,2 @@
 $import:
-  names: [blork]
-  from: "./nodeps.yaml"
+  blork: ./nodeps.yaml

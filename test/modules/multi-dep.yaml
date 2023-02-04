@@ -1,8 +1,5 @@
 $import:
- - names: [five, id]
-   from: "./nodeps.yaml"
- - names: [hello]
-   from: "./imports-relative.yaml"
+  five, id: ./nodeps.yaml
+  hello: ./imports-relative.yaml
 
-$do:
-  - $id: [$five, $hello]
+$id: [$five, $hello]

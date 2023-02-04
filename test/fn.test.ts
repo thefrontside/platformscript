@@ -33,7 +33,7 @@ say: { ()=>: $saying }
 
     let interp = ps.createPlatformScript();
     let mod = await interp.moduleEval(program, import.meta.url);
-    let say = lookup("say", mod.symbols);
+    let say = lookup("say", mod.value);
     assert(say.type === "just");
     assert(say.value.type === "fn");
     expect((await interp.call(say.value, ps.boolean(false))).value).toEqual(
@@ -44,13 +44,13 @@ say: { ()=>: $saying }
   it("can acesss imported symbols of the module in which it was defined", async () => {
     let program = ps.parse(`
 $import:
-  names: [say]
-  from: modules/fn-scope.yaml
-$do: { $say: Hello }
+  say: modules/fn-scope.yaml
+$say: Hello
 `);
 
     let interp = ps.createPlatformScript();
-    await interp.moduleEval(program, import.meta.url);
+    let mod = await interp.moduleEval(program, import.meta.url);
+    expect(mod.value).toEqual(ps.string("Hello world: world"));
   });
 
   it("can parse method syntax", async () => {

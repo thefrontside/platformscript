@@ -39,8 +39,11 @@ export type Maybe<T> =
 
 export function lookup(
   key: string | number | boolean,
-  map: PSMap,
+  map: PSValue,
 ): Maybe<PSValue> {
+  if (map.type !== "map") {
+    return { type: "nothing", value: void 0 };
+  }
   for (let entry of map.value.entries()) {
     let [k, value] = entry;
     if (k.value === key) {
@@ -50,7 +53,10 @@ export function lookup(
   return { type: "nothing", value: void 0 };
 }
 
-export function lookup$(key: string, map: PSMap): PSValue {
+export function lookup$(key: string, map: PSValue): PSValue {
+  if (map.type !== "map") {
+    throw new Error(`cannot lookup a value from non-map type '${map.type}'`);
+  }
   let maybe = lookup(key, map);
   if (maybe.type === "nothing") {
     throw new Error(`expected map to contain key '${key}', but it did not`);

@@ -7,10 +7,17 @@ export interface PSEnv {
 }
 
 export interface PSModule {
-  url: string;
-  symbols: PSMap;
-  body: PSValue;
+  url: URL;
+  source: PSValue;
   value: PSValue;
+  imports: {
+    module: PSModule;
+    bindings: {
+      name: string;
+      alias?: string;
+      all: boolean;
+    }[];
+  }[];
 }
 
 export type PSValue =
