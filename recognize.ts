@@ -59,6 +59,7 @@ export function recognize(value: PSValue): PSValue {
               type: "map",
               value: new Map(rest),
             },
+            source: value,
           };
         }
         return derive(value, {
