@@ -1,4 +1,5 @@
 import { parse as parseFlags } from "https://deno.land/std@0.159.0/flags/mod.ts";
+import VERSION from "./version.json" assert { type: "json" };
 
 let flags = parseFlags(Deno.args, {
   boolean: "version",
@@ -8,7 +9,7 @@ let flags = parseFlags(Deno.args, {
 });
 
 if (flags.version) {
-  console.log(`1.0.0`);
+  console.log(VERSION);
 } else {
   console.log(`USAGE:
 pls [OPTIONS] [COMMAND]
