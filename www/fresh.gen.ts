@@ -12,7 +12,8 @@ import * as $5 from "./routes/gfm.css.ts";
 import * as $6 from "./routes/index.tsx";
 import * as $7 from "./routes/playground.tsx";
 import * as $8 from "./routes/pls.tsx";
-import * as $9 from "./routes/worker.js.ts";
+import * as $9 from "./routes/std.tsx";
+import * as $10 from "./routes/worker.js.ts";
 import * as $$0 from "./islands/CopyArea.tsx";
 import * as $$1 from "./islands/ps-playground.tsx";
 
@@ -27,7 +28,8 @@ const manifest = {
     "./routes/index.tsx": $6,
     "./routes/playground.tsx": $7,
     "./routes/pls.tsx": $8,
-    "./routes/worker.js.ts": $9,
+    "./routes/std.tsx": $9,
+    "./routes/worker.js.ts": $10,
   },
   islands: {
     "./islands/CopyArea.tsx": $$0,
