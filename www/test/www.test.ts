@@ -59,4 +59,20 @@ describe("www", () => {
       `<base href="http://example.com/path/to/subdir/" />`,
     );
   });
+
+  it("can retrieve things from the standard library", async () => {
+    let response = await fetch(
+      "http://localhost:9999/std/examples/welcome.yaml",
+    );
+    let content = await response.text();
+    expect(response.headers.get("Content-Type")).toContain("text/yaml");
+    expect(content).toContain("Welcome to PlatformScript!");
+  });
+
+  it("will not find things outside the 'libstd' directory`", async () => {
+    let response = await fetch("http://localhost:9999/std/.../README.md");
+    let text = await response.text();
+    expect(response.status).toEqual(404);
+    expect(text).toContain("Not Found");
+  });
 });
