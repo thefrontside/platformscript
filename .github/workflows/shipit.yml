@@ -20,6 +20,8 @@ jobs:
 
       - name:
         run: |
+          git config --global user.email "jack@frontside.com"
+          git config --global user.name "Frontside Jack"
           deno task rel:init
           deno task rel:shipit
           git push origin 'refs/notes/*:refs/notes/*'
