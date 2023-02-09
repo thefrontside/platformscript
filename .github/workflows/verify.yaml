@@ -40,3 +40,7 @@ jobs:
         run: |
           deno task test
           cd www && deno task test
+
+      - name: check-npm-build
+        run: |
+          cat version.json | xargs deno task build:npm
