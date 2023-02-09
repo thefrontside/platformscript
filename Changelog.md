@@ -7,6 +7,15 @@
 - migrate from `yaml-ast-parser` -> `yaml` package
 - Add installer with instructions to home page.
 
+## 1.0.0-alpha.11
+
+- ✨Add run command and documentation
+- add ability to ask `pls` what its version is
+- new import syntax for modules
+- `print()` function converts any PSvalue -> PSString
+- migrate from `yaml-ast-parser` -> `yaml` package
+- Add installer with instructions to home page.
+
 ## 1.0.0-alpha.10
 
 - Allow calling fns that are referenced by a fn parameter
