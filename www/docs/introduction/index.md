@@ -28,10 +28,10 @@ PlatformScript is designed to eliminate the bugs, validation errors, and tedium
 of working with YAML by bringing to bear all the rigor and tooling of a modern
 language such as type-checkers, language servers, linters, etc...
 
-It will always use plain YAML without extensions as it syntax, so that
-all PlatformScript programs can be represented as YAML documents, and
-it adopts a policy of "no magic" as in no magic functions, no magic
-variables, and a small, consistent set of evaluation rules.
+It will always use plain YAML without extensions as it syntax, so that all
+PlatformScript programs can be represented as YAML documents, and it adopts a
+policy of "no magic" as in no magic functions, no magic variables, and a small,
+consistent set of evaluation rules.
 
 PlatformScript should always be an excellent choice to replace configuration
 files and special one-off DSLs, especially those that use YAML for their syntax.
