@@ -53,6 +53,8 @@ function toYAML(value: PSValue): yaml.Node {
       return toYAML(value.source);
     case "external":
       return new yaml.Scalar("<[external]>");
+    case "quote":
+      return toYAML(value.value);
     default:
       throw new Error(`FATAL: non exhaustive print() match.`);
   }

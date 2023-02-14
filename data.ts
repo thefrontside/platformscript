@@ -6,6 +6,7 @@ import type {
   PSList,
   PSMap,
   PSNumber,
+  PSQuote,
   PSRef,
   PSString,
   PSValue,
@@ -67,4 +68,8 @@ export function fn(
       call,
     },
   };
+}
+
+export function quote(value: PSValue): PSQuote {
+  return { type: "quote", value };
 }
