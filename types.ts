@@ -30,7 +30,8 @@ export type PSValue =
   | PSMap
   | PSFn
   | PSFnCall
-  | PSExternal;
+  | PSExternal
+  | PSQuote;
 
 export type PSMapKey =
   | PSNumber
@@ -87,6 +88,11 @@ export interface PSExternal {
   type: "external";
   value: any;
   view?(path: string[], value: any): PSValue | void;
+}
+
+export interface PSQuote {
+  type: "quote";
+  value: PSValue;
 }
 
 export interface PSFn {

@@ -101,7 +101,55 @@ main: $myfive
       expect(lookup$("main", mod.value)).toEqual(number(5));
     });
   });
+
+  it("can import a module manually via location", async () => {
+    let mod = await runmod(`
+$import:
+  five:
+    location: nodeps.yaml
+main: $five
+`);
+
+    expect(lookup$("main", mod.value)).toEqual(number(5));
+  });
+
+  it("can import an module as quoted platformscript", async () => {
+    let mod = await runmod(`
+$import:
+  nodeps<<:
+    location: nodeps.yaml
+    quote: true
+self(x): $x
+id: { $self: $nodeps.id }
+`);
+    let id = lookup$("id", mod.value);
+    expect(id.type).toEqual("quote");
+    expect(lookup$("(x)=>", id.value)).toEqual(string("$x"));
+  });
+
+  it("can import a single value as quoted platformscript", async () => {
+    let mod = await runmod(`
+$import:
+  id:
+    location: nodeps.yaml
+    quote: true
+id: $id
+`);
+    let id = lookup$("id", mod.value);
+    expect(id.type).toEqual("quote");
+    expect(lookup$("(x)=>", id.value)).toEqual(string("$x"));
+  });
 });
+
+function runmod(modstring: string): Task<PSModule> {
+  let source = parse(modstring);
+  return run(() =>
+    moduleEval({
+      source,
+      location: new URL(`modules/virtual-module.yaml`, import.meta.url),
+    })
+  );
+}
 
 function loadmod(url: string): Task<PSModule> {
   return run(() =>

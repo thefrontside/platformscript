@@ -3,6 +3,7 @@ import type {
   PSLiteral,
   PSMap,
   PSMapKey,
+  PSRef,
   PSTemplate,
   PSValue,
 } from "./types.ts";
@@ -59,7 +60,6 @@ export function createYSEnv(parent = global): PSEnv {
       let env = createYSEnv(scope);
 
       let value = yield* bind(recognize($value), scope, []);
-
       if (value.type === "ref") {
         return value;
       } else if (value.type === "template") {
@@ -201,6 +201,47 @@ function isPSValue(value: unknown): value is PSValue {
   }
 }
 
+function view(ref: PSRef, value: PSValue): PSValue {
+  let { key, path } = ref;
+  if (value.type === "external" && value.view) {
+    let deref = value.view(path, value.value);
+    if (!deref) {
+      throw new ReferenceError(
+        `'${path.join(".")}' not found at ${key}`,
+      );
+    }
+    if (!isPSValue(deref)) {
+      throw new TypeError(
+        `external reference '${value.value}' did not resolve to a platformscript value`,
+      );
+    }
+    return deref;
+  } else if (value.type === "map") {
+    return path.reduce((current, segment) => {
+      if (current.type === "map") {
+        let next = lookup(segment, current);
+        if (next.type === "nothing") {
+          throw new ReferenceError(
+            `no such key '${segment}' in ${value.value}`,
+          );
+        } else {
+          return next.value;
+        }
+      } else {
+        throw new TypeError(
+          `cannot de-reference key ${segment} from '${current.type}'`,
+        );
+      }
+    }, value as PSValue);
+  } else if (value.type === "quote") {
+    return data.quote(view(ref, value.value));
+  } else {
+    throw new TypeError(
+      `${value.type} '$${key}' does not support path-like references`,
+    );
+  }
+}
+
 function* bind(
   value: PSValue,
   scope: PSMap,
@@ -218,41 +259,7 @@ function* bind(
       throw new ReferenceError(`'${value.key}' not defined`);
     } else {
       if (path.length > 0) {
-        if (result.value.type === "external" && result.value.view) {
-          let deref = result.value.view(path, result.value.value);
-          if (!deref) {
-            throw new ReferenceError(
-              `'${path.join(".")}' not found at ${key}`,
-            );
-          }
-          if (!isPSValue(deref)) {
-            throw new TypeError(
-              `external reference '${value.value}' did not resolve to a platformscript value`,
-            );
-          }
-          return deref;
-        } else if (result.value.type === "map") {
-          return path.reduce((current, segment) => {
-            if (current.type === "map") {
-              let next = lookup(segment, current);
-              if (next.type === "nothing") {
-                throw new ReferenceError(
-                  `no such key '${segment}' in ${value.value}`,
-                );
-              } else {
-                return next.value;
-              }
-            } else {
-              throw new TypeError(
-                `cannot de-reference key ${segment} from '${current.type}'`,
-              );
-            }
-          }, result.value as PSValue);
-        } else {
-          throw new TypeError(
-            `${result.value.type} '$${key}' does not support path-like references`,
-          );
-        }
+        return view(value, result.value);
       } else {
         return result.value;
       }

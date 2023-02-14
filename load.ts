@@ -11,22 +11,24 @@ export interface LoadOptions {
   location: string | URL;
   base?: string;
   env?: PSEnv;
+  quote?: boolean;
 }
 
 export function* load(options: LoadOptions): Operation<PSModule> {
-  let { location, base, env } = options;
+  let { location, base, env, quote } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
 
   let content = yield* read(url);
   let source = parse(content);
 
-  return yield* moduleEval({ source, location: url, env });
+  return yield* moduleEval({ source, location: url, env, quote });
 }
 
 export interface ModuleEvalOptions {
   location: string | URL;
   source: PSValue;
   env?: PSEnv;
+  quote?: boolean;
 }
 
 export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
@@ -40,7 +42,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
     imports: [],
   };
 
-  if (source.type !== "map") {
+  if (source.type !== "map" || options.quote) {
     return mod;
   }
 
@@ -61,16 +63,36 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
           `imported symbols should be a string, but was ${names.type}`,
         );
       }
-      if (loc.type !== "string") {
+      let location: string;
+      let quote = false;
+      if (loc.type === "string") {
+        location = loc.value;
+      } else if (loc.type === "map") {
+        let l = lookup("location", loc);
+        if (l.type === "nothing") {
+          throw new Error(
+            `If import specifier is a map, it must have a 'location'`,
+          );
+        } else if (l.value.type !== "string") {
+          throw new Error(
+            `'location' attribute of import specifier must be a string, but was '${l.value.type}'`,
+          );
+        } else {
+          location = l.value.value;
+        }
+        let quoted = lookup("quote", loc);
+        quote = quoted.type === "just" && quoted.value.value === true;
+      } else {
         throw new Error(
-          `import location should be a url string, but was ${loc.type}`,
+          `import specifier must be either a string or a map, but was '${loc.type}'`,
         );
       }
       let bindings = matchBindings(names.value);
       let dep = yield* load({
-        location: loc.value,
+        location,
         base: url.toString(),
         env,
+        quote,
       });
 
       mod.imports.push({
@@ -82,7 +104,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
         let name = binding.alias ?? binding.name;
         let value;
         if (binding.all) {
-          value = dep.value;
+          value = quote ? data.quote(dep.value) : dep.value;
         } else if (dep.value.type !== "map") {
           throw new Error(
             `tried to import a name from ${dep.url}, but it is not a 'map'. It is a ${dep.value.type}`,
@@ -94,7 +116,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
               `module ${dep.url} does not have a member named '${binding.name}'`,
             );
           } else {
-            value = result.value;
+            value = quote ? data.quote(result.value) : result.value;
           }
         }
         scope.value.set(data.string(name), value);
@@ -112,7 +134,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
     for (let [key, value] of expanded.value.entries()) {
       let evaluated = yield* env.eval(value, scope);
       scope.value.set(key, evaluated);
-      mod.value.value.set(key, yield* env.eval(value, scope));
+      mod.value.value.set(key, evaluated);
     }
   }
 
