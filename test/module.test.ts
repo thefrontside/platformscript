@@ -2,7 +2,7 @@ import type { PSMap, PSModule } from "../types.ts";
 import type { Task } from "../deps.ts";
 
 import { describe, expect, it, useStaticFileServer } from "./suite.ts";
-import { load, moduleEval, number, parse, ps2js, string } from "../mod.ts";
+import { load, map, moduleEval, number, parse, ps2js, string } from "../mod.ts";
 import { run } from "../deps.ts";
 import { lookup, lookup$ } from "../psmap.ts";
 
@@ -99,6 +99,18 @@ main: $myfive
         location: new URL(`modules/virtual-module.yaml`, import.meta.url),
       });
       expect(lookup$("main", mod.value)).toEqual(number(5));
+    });
+  });
+
+  it("supports importing from the canonical module", async () => {
+    await run(function* () {
+      let source = parse(`$import:\n  five: --canon--\nhi: $five`);
+      let mod = yield* moduleEval({
+        source,
+        location: new URL(`modules/virtual-module.yaml`, import.meta.url),
+        canon: map({ "five": number(5) }),
+      });
+      expect(lookup$("hi", mod.value)).toEqual(number(5));
     });
   });
 });

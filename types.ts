@@ -7,7 +7,7 @@ export interface PSEnv {
 }
 
 export interface PSModule {
-  url: URL;
+  location: string;
   source: PSValue;
   value: PSValue;
   imports: {

@@ -73,13 +73,12 @@ $say: Hello
   });
 
   it("can reference values from arguments to native functions", async () => {
-    let interp = ps.createPlatformScript(() =>
-      ps.map({
-        id: ps.fn(function* $id({ arg, env }) {
-          return yield* env.eval(arg);
-        }, { name: "x" }),
-      })
-    );
+    let binding = ps.map({
+      id: ps.fn(function* $id({ arg, env }) {
+        return yield* env.eval(arg);
+      }, { name: "x" }),
+    });
+    let interp = ps.createPlatformScript();
 
     let program = ps.parse(`
 $let:
@@ -89,7 +88,7 @@ $do:
   $myid: hello world
 `);
 
-    let result = await interp.eval(program);
+    let result = await interp.eval(program, binding);
     expect(result.value).toEqual("hello world");
   });
 
