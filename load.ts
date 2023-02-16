@@ -1,4 +1,4 @@
-import type { PSEnv, PSModule, PSValue } from "./types.ts";
+import type { PSEnv, PSMap, PSModule, PSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
 import { expect, useAbortSignal } from "./deps.ts";
@@ -11,22 +11,24 @@ export interface LoadOptions {
   location: string | URL;
   base?: string;
   env?: PSEnv;
+  canon?: PSMap;
 }
 
 export function* load(options: LoadOptions): Operation<PSModule> {
-  let { location, base, env } = options;
+  let { location, base, env, canon } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
 
   let content = yield* read(url);
   let source = parse(content);
 
-  return yield* moduleEval({ source, location: url, env });
+  return yield* moduleEval({ source, location: url, env, canon });
 }
 
 export interface ModuleEvalOptions {
   location: string | URL;
   source: PSValue;
   env?: PSEnv;
+  canon?: PSMap;
 }
 
 export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
@@ -34,7 +36,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
   let url = typeof location === "string" ? new URL(location) : location;
 
   let mod: PSModule = {
-    url,
+    location: location.toString(),
     source,
     value: source,
     imports: [],
@@ -45,6 +47,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
   }
 
   let scope = data.map({});
+  let canon = options.canon ?? data.map({});
 
   let imports = lookup("$import", source);
   let rest = exclude(["$import"], source);
@@ -67,11 +70,19 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
         );
       }
       let bindings = matchBindings(names.value);
-      let dep = yield* load({
-        location: loc.value,
-        base: url.toString(),
-        env,
-      });
+
+      let dep = loc.value === "--canon--"
+        ? ({
+          location: loc.value,
+          source: canon,
+          value: canon,
+          imports: [],
+        })
+        : yield* load({
+          location: loc.value,
+          base: url.toString(),
+          env,
+        });
 
       mod.imports.push({
         module: dep,
@@ -85,13 +96,13 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
           value = dep.value;
         } else if (dep.value.type !== "map") {
           throw new Error(
-            `tried to import a name from ${dep.url}, but it is not a 'map'. It is a ${dep.value.type}`,
+            `tried to import a name from ${dep.location}, but it is not a 'map'. It is a ${dep.value.type}`,
           );
         } else {
           let result = lookup(binding.name, dep.value);
           if (result.type === "nothing") {
             throw new Error(
-              `module ${dep.url} does not have a member named '${binding.name}'`,
+              `module ${dep.location} does not have a member named '${binding.name}'`,
             );
           } else {
             value = result.value;
