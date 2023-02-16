@@ -2,9 +2,10 @@ import type { PSEnv, PSMap, PSModule, PSValue } from "./types.ts";
 import type { Operation } from "./deps.ts";
 
 import { expect, useAbortSignal } from "./deps.ts";
-import { exclude, lookup } from "./psmap.ts";
+import { concat, exclude, lookup } from "./psmap.ts";
 import { createYSEnv, parse } from "./evaluate.ts";
 import { recognize } from "./recognize.ts";
+import { builtin } from "./builtin.ts";
 import * as data from "./data.ts";
 
 export interface LoadOptions {
@@ -18,10 +19,17 @@ export function* load(options: LoadOptions): Operation<PSModule> {
   let { location, base, env, canon } = options;
   let url = typeof location === "string" ? new URL(location, base) : location;
 
-  let content = yield* read(url);
-  let source = parse(content);
-
-  return yield* moduleEval({ source, location: url, env, canon });
+  try {
+    let content = yield* read(url);
+    let source = parse(content);
+    return yield* moduleEval({ source, location: url, env, canon });
+  } catch (error) {
+    if (error.name === "NotFound") {
+      throw new Error(`module not found: ${location}`);
+    } else {
+      throw error;
+    }
+  }
 }
 
 export interface ModuleEvalOptions {
@@ -55,7 +63,7 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
   if (imports.type === "just") {
     if (imports.value.type !== "map") {
       throw new Error(
-        `imports must be specified as a mapping of names: URL but was ${imports.value.type}`,
+        `imports must be specified as a mapping of names: URL but was '${imports.value.type}'`,
       );
     }
     for (let [names, loc] of imports.value.value.entries()) {
@@ -74,8 +82,8 @@ export function* moduleEval(options: ModuleEvalOptions): Operation<PSModule> {
       let dep = loc.value === "--canon--"
         ? ({
           location: loc.value,
-          source: canon,
-          value: canon,
+          source: concat(builtin, canon),
+          value: concat(builtin, canon),
           imports: [],
         })
         : yield* load({

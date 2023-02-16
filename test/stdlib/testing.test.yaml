@@ -1,0 +1,22 @@
+$import:
+  test, not, toEqual: ../../stdlib/testing.yaml
+
+$test:
+  - expect:
+    - Hello %(World)
+    - $toEqual: Hello World
+  - expect:
+    - {hello: world}
+    - $toEqual: {hello: world}
+  - expect:
+    - [hello, world]
+    - $toEqual: [hello, world]
+  - expect:
+    - hello
+    - $not:
+        $toEqual: world
+  - expect:
+    - hello
+    - $not:
+        $not:
+          $toEqual: hello

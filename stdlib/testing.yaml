@@ -1,0 +1,6 @@
+$import:
+  testing: --canon--
+
+not: $testing.not
+test: $testing.test
+toEqual: $testing.toEqual
