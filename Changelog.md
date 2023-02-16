@@ -1,3 +1,7 @@
+## 1.0.0-alpha.12
+
+- ✨Introduce the `--canon--` module
+
 ## 1.0.0-alpha.11
 
 - ✨Add run command and documentation
